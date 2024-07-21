@@ -552,8 +552,8 @@ class LeggedRobot(BaseTask):
             self.height_points = self._init_height_points()
         self.measured_heights = 0
         
-        # self.feet_air_time = torch.zeros(self.num_envs, self.feet_indices.shape[0], dtype=torch.float, device=self.device, requires_grad=False)
-        # self.last_contacts = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.bool, device=self.device, requires_grad=False)
+        self.feet_air_time = torch.zeros(self.num_envs, self.feet_indices.shape[0], dtype=torch.float, device=self.device, requires_grad=False)
+        self.last_contacts = torch.zeros(self.num_envs, self.feet_indices.shape[0], dtype=torch.bool, device=self.device, requires_grad=False)
 
         # buffers won't change during simulation
         self.dof_pos_limits = torch.cat([limit.unsqueeze(1) for limit in self.robot.get_dofs_limit()], dim=1)[6:]
@@ -680,19 +680,6 @@ class LeggedRobot(BaseTask):
         for joint in self.robot.joints:
             self.dof_names.append(joint.name)
         
-        # FR_hip_joint 0
-        # FL_hip_joint
-        # RR_hip_joint
-        # RL_hip_joint
-        # FR_thigh_joint
-        # FL_thigh_joint 5
-        # RR_thigh_joint
-        # RL_thigh_joint
-        # FR_calf_joint
-        # FL_calf_joint
-        # RR_calf_joint 10
-        # RL_calf_joint
-
         # joint positions offsets and PD gains
         self.default_dof_pos = torch.zeros(self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
         self.p_gains = torch.zeros(self.num_actions, dtype=torch.float, device=self.device, requires_grad=False)
@@ -727,24 +714,22 @@ class LeggedRobot(BaseTask):
         for name in self.cfg.asset.terminate_after_contacts_on:
             termination_contact_names.extend([s for s in self.body_names if name in s])
         
-        # self.feet_indices = torch.zeros(len(feet_names), dtype=torch.long, device=self.device, requires_grad=False)
-        # for i in range(len(feet_names)):
-        #     self.feet_indices[i] = self.robot.get_link(name).dof_idx_local
+        self.feet_indices = torch.zeros(len(feet_names), dtype=torch.long, device=self.device, requires_grad=False)
+        self.penalised_contact_indices = torch.zeros(len(penalized_contact_names), dtype=torch.long, device=self.device, requires_grad=False)
+        self.termination_contact_indices = torch.zeros(len(termination_contact_names), dtype=torch.long, device=self.device, requires_grad=False)
 
-        # self.penalised_contact_indices = torch.zeros(len(penalized_contact_names), dtype=torch.long, device=self.device, requires_grad=False)
-        # for i in range(len(penalized_contact_names)):
-        #     self.penalised_contact_indices[i] = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles[0], penalized_contact_names[i])
+        for i in range(len(self.body_names)):
+            for j in range(len(feet_names)):
+                if feet_names[j] == self.body_names[i]:
+                    self.feet_indices[j] = i
 
-        # self.termination_contact_indices = torch.zeros(len(termination_contact_names), dtype=torch.long, device=self.device, requires_grad=False)
-        # for i in range(len(termination_contact_names)):
-        #     self.termination_contact_indices[i] = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles[0], termination_contact_names[i])
+            for j in range(len(penalized_contact_names)):
+                if penalized_contact_names[j] == self.body_names[i]:
+                    self.penalised_contact_indices[j] = i
 
-        # self.default_dof_pos will be defined in _init_buffers
-        # TODO: feet_indices
-        # TODO: termination_contact_indices
-        self.termination_contact_indices = []
-        
-        # TODO: read dof props like self._process_dof_props()
+            for j in range(len(termination_contact_names)):
+                if termination_contact_names[j] == self.body_names[i]:
+                    self.termination_contact_indices[j] = i
 
         return
         asset_options = gymapi.AssetOptions()

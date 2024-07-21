@@ -32,12 +32,13 @@ from legged_gym.envs.genesis.legged_robot_config import LeggedRobotCfg, LeggedRo
 
 class A1RoughCfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
-        num_envs = 10
+        num_envs = 1
         num_observations = 48
         episode_length_s = 2 # episode length in seconds
 
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.42] # x,y,z [m]
+        quat = [0.0, 0.0, 0.0, 1.0] # x,y,z,w [quat]
         default_joint_angles = { # = target angles [rad] when action = 0.0
             'FR_hip_joint': 0.,  # [rad]
             'FL_hip_joint': 0.,   # [rad]
@@ -68,8 +69,8 @@ class A1RoughCfg( LeggedRobotCfg ):
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/a1/urdf/a1.urdf'
         name = "a1"
-        foot_name = "foot"
-        penalize_contacts_on = ["thigh", "calf"]
+        foot_name = "calf"
+        penalize_contacts_on = ["thigh"]
         terminate_after_contacts_on = ["base"]
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
   
@@ -78,9 +79,9 @@ class A1RoughCfg( LeggedRobotCfg ):
         base_height_target = 0.25
         class scales:
             pass
-        # class scales( LeggedRobotCfg.rewards.scales ):
-        #     torques = -0.0002
-        #     dof_pos_limits = -10.0
+        class scales( LeggedRobotCfg.rewards.scales ):
+            torques = -0.0002
+            dof_pos_limits = -10.0
 
 class A1RoughCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
