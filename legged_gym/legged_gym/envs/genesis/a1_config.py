@@ -34,24 +34,25 @@ class A1RoughCfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
         num_envs = 10
         num_observations = 48
+        episode_length_s = 2 # episode length in seconds
 
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.42] # x,y,z [m]
         default_joint_angles = { # = target angles [rad] when action = 0.0
-            'FL_hip_joint': 0.1,   # [rad]
-            'RL_hip_joint': 0.1,   # [rad]
-            'FR_hip_joint': -0.1 ,  # [rad]
-            'RR_hip_joint': -0.1,   # [rad]
+            'FR_hip_joint': 0.,  # [rad]
+            'FL_hip_joint': 0.,   # [rad]
+            'RR_hip_joint': 0.,   # [rad]
+            'RL_hip_joint': 0.,   # [rad]
 
-            'FL_thigh_joint': 0.8,     # [rad]
-            'RL_thigh_joint': 1.,   # [rad]
             'FR_thigh_joint': 0.8,     # [rad]
+            'FL_thigh_joint': 0.8,     # [rad]
             'RR_thigh_joint': 1.,   # [rad]
+            'RL_thigh_joint': 1.,   # [rad]
 
-            'FL_calf_joint': -1.5,   # [rad]
-            'RL_calf_joint': -1.5,    # [rad]
             'FR_calf_joint': -1.5,  # [rad]
+            'FL_calf_joint': -1.5,   # [rad]
             'RR_calf_joint': -1.5,    # [rad]
+            'RL_calf_joint': -1.5,    # [rad]
         }
 
     class control( LeggedRobotCfg.control ):
