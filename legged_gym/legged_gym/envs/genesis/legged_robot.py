@@ -457,6 +457,14 @@ class LeggedRobot(BaseTask):
     def _push_robots(self):
         """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity. 
         """
+        
+        max_vel = self.cfg.domain_rand.max_push_vel_xy
+        push_vel = self.robot.get_dofs_velocity() # (num_envs, num_dof) [0:3] ~ base_link_vel
+        push_vel[:, :2] += torch_rand_float(-max_vel, max_vel, (self.num_envs, 2), device=self.device)
+        self.robot.set_dofs_velocity(push_vel)
+
+        return
+        
         max_vel = self.cfg.domain_rand.max_push_vel_xy
         self.root_states[:, 7:9] = torch_rand_float(-max_vel, max_vel, (self.num_envs, 2), device=self.device) # lin vel x/y
         self.gym.set_actor_root_state_tensor(self.sim, gymtorch.unwrap_tensor(self.root_states))
@@ -573,8 +581,8 @@ class LeggedRobot(BaseTask):
         self.base_quat = torch.cat([base_quat[:, 1:], base_quat[:, :1]], dim=1)
         self.root_states = torch.cat([self.base_pos, self.base_quat, self.robot.get_vel(), self.robot.get_ang()], dim=1)
 
-        self.dof_pos = self.robot.get_dofs_position()[:, 6:] # (num_envs, num_joints, 3)
-        self.dof_vel = self.robot.get_dofs_velocity()[:, 6:] # (num_envs, num_joints, 3)
+        self.dof_pos = self.robot.get_dofs_position()[:, 6:] # (num_envs, num_joints)
+        self.dof_vel = self.robot.get_dofs_velocity()[:, 6:] # (num_envs, num_joints)
 
         self.contact_forces = torch.tensor(self.robot.get_links_net_contact_force(), device=self.device) # (num_envs, num_body, 3)
         
