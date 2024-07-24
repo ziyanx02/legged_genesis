@@ -124,7 +124,7 @@ class LeggedRobotCfg(BaseConfig):
         friction_range = [0.5, 1.25]
         randomize_base_mass = False
         added_mass_range = [-1., 1.]
-        push_robots = True
+        push_robots = False
         push_interval_s = 15
         max_push_vel_xy = 1.
 
@@ -178,9 +178,9 @@ class LeggedRobotCfg(BaseConfig):
     # viewer camera:
     class viewer:
         ref_env = 0
-        pos = [0, 0, 3]  # [m]
-        lookat = [5., 5., 0.]  # [m]
-        fov = 40
+        pos = [-0.15, 2.5, 3.82]  # [m]
+        lookat = [0.5, 0.5, 0.8]  # [m]
+        fov = 60
         geom_type = 'visual' # ['visual', 'collision', 'collision_sdf']
         visualize_contact = False
 

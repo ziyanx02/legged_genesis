@@ -48,6 +48,10 @@ from legged_gym.utils.math import *
 from legged_gym.utils.helpers import class_to_dict
 from legged_gym.envs.genesis.legged_robot_config import LeggedRobotCfg
 
+from PIL import Image
+import matplotlib.pyplot as plt
+from moviepy.editor import ImageSequenceClip
+
 class LeggedRobot(BaseTask):
     def __init__(self, cfg: LeggedRobotCfg, sim_params, sim_device, headless):
         """ Parses the provided config file,
@@ -70,11 +74,22 @@ class LeggedRobot(BaseTask):
         self._parse_cfg(self.cfg)
         super().__init__(self.cfg, sim_params, sim_device, headless)
 
-        # if not self.headless:
-        #     self.set_camera(self.cfg.viewer.pos, self.cfg.viewer.lookat)
         self._init_buffers()
         self._prepare_reward_function()
         self.init_done = True
+    
+    def render(self, img_path=None, sync_frame_time=True):
+
+        img_np, _, _ = self.camera.render(rgb=True, depth=True, segmentation=True) # type: np.ndarray    
+        img = Image.fromarray(img_np)
+        self.images.append(img_np)
+        
+        if len(self.images) % 200 == 0:
+            # self.images[0].save('./videos/view.gif', 'GIF', append_images=self.images[1:], save_all=True, duration=200, loop=0)
+            clip = ImageSequenceClip(self.images, fps=50)
+            clip.write_videofile(self.cfg.viewer.video_path, codec='libx264')
+
+        if img_path is not None: img.save(img_path)
 
     def step(self, actions):
         """ Apply actions, simulate, call self.post_physics_step()
@@ -85,12 +100,13 @@ class LeggedRobot(BaseTask):
         clip_actions = self.cfg.normalization.clip_actions
         self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
         # step physics and render each frame
-        # self.render()
+        self.render()
 
-        for _ in range(self.cfg.control.decimation):
+        for dec in range(self.cfg.control.decimation):
             self.torques = self._compute_torques(self.actions).view(self.torques.shape)
-            self.robot.control_dofs_force(self.torques, dofs_idx_local=self.dofs_idx_local_full)
+            self.robot.control_dofs_force(self.torques, dofs_idx_local=self.dofs_idx_local_full)            
             self.scene.step()
+
         self.post_physics_step()
 
         # return clipped obs, clipped states (None), rewards, dones and infos
@@ -184,6 +200,11 @@ class LeggedRobot(BaseTask):
         if self.cfg.env.send_timeouts:
             self.extras["time_outs"] = self.time_out_buf
     
+    def reset(self):
+        """ Reset all robots"""
+        self.reset_idx(torch.arange(self.num_envs, device=self.device))
+        return None, None
+    
     def compute_reward(self):
         """ Compute rewards
             Calls each reward function which had a non-zero scale (processed in self._prepare_reward_function())
@@ -252,6 +273,8 @@ class LeggedRobot(BaseTask):
             rigid_options=gs.options.RigidOptions(
                 dt=self.cfg.sim.dt, # TODO: what's this
                 constraint_solver=gs.constraint_solver.Newton,
+                enable_collision=True,
+                enable_joint_limit=True,
             ),
             mpm_options=gs.options.MPMOptions(
                 lower_bound=(-0.1, -0.1, -0.1),
@@ -265,6 +288,7 @@ class LeggedRobot(BaseTask):
         )
         self._create_terrain()
         self._create_robot()
+        self._set_camera()
 
     def build_scenes(self):
         """ Build parallel envs and randomizations """
@@ -272,14 +296,6 @@ class LeggedRobot(BaseTask):
         self.scene.build(n_envs=self.num_envs)
 
         # TODO: apply randomizations initialized in self._create_robot()
-
-    def set_camera(self, position, lookat):
-        """ Set camera position and direction
-        """
-        raise NotImplementedError
-        cam_pos = gymapi.Vec3(position[0], position[1], position[2])
-        cam_target = gymapi.Vec3(lookat[0], lookat[1], lookat[2])
-        self.gym.viewer_camera_look_at(self.viewer, None, cam_pos, cam_target)
 
     #------------- Callbacks --------------
     def _process_rigid_shape_props(self, props, env_id):
@@ -662,8 +678,9 @@ class LeggedRobot(BaseTask):
 
         self.robot = self.scene.add_entity(
             gs.morphs.URDF(
-                file=asset_path,
-                # pos=(0, 0, 0),
+                file = asset_path,
+                pos = self.cfg.init_state.pos,
+                scale = 1.0,
             ),
             visualize_contact=False
         )
@@ -804,6 +821,25 @@ class LeggedRobot(BaseTask):
         self.termination_contact_indices = torch.zeros(len(termination_contact_names), dtype=torch.long, device=self.device, requires_grad=False)
         for i in range(len(termination_contact_names)):
             self.termination_contact_indices[i] = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles[0], termination_contact_names[i])
+
+    def _set_camera(self):
+        """ Set camera position and direction
+        """
+        self.camera = self.scene.add_camera(
+            pos=(self.cfg.viewer.pos[0], self.cfg.viewer.pos[1], self.cfg.viewer.pos[2]),
+            lookat=(self.cfg.viewer.lookat[0], self.cfg.viewer.lookat[1], self.cfg.viewer.lookat[2]),
+            # res=(500, 500),
+            fov=self.cfg.viewer.fov,
+            GUI=False,
+        )
+        self.images = []
+
+        return
+
+        raise NotImplementedError
+        cam_pos = gymapi.Vec3(position[0], position[1], position[2])
+        cam_target = gymapi.Vec3(lookat[0], lookat[1], lookat[2])
+        self.gym.viewer_camera_look_at(self.viewer, None, cam_pos, cam_target)
 
     def _get_env_origins(self):
         """ Sets environment origins. On rough terrain the origins are defined by the terrain platforms.
