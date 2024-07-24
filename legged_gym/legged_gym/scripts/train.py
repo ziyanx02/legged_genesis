@@ -51,7 +51,11 @@ def train(args):
     elif args.wandb_offline:
         mode = "offline"
     else:
-        mode="online"
+        mode = "online"
+    if args.debug:
+        args.headless = False
+        args.num_envs = 10
+        mode = "disabled"
     wandb.init(project=args.proj_name, name=args.exptid, entity=args.entity, mode=mode, dir=log_dir)
     wandb.save(LEGGED_GYM_ENVS_DIR + "/genesis/legged_robot_config.py", policy="now")
     wandb.save(LEGGED_GYM_ENVS_DIR + "/genesis/legged_robot.py", policy="now")

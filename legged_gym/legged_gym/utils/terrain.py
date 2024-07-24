@@ -32,15 +32,12 @@ import numpy as np
 from numpy.random import choice
 from scipy import interpolate
 
-from isaacgym import terrain_utils
 from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg
 
 class Terrain:
-    def __init__(self, cfg: LeggedRobotCfg.terrain, num_robots) -> None:
+    def __init__(self, cfg: LeggedRobotCfg.terrain) -> None:
 
         self.cfg = cfg
-        self.num_robots = num_robots
-        self.type = cfg.mesh_type
         if self.type in ["none", 'plane']:
             return
         self.env_length = cfg.terrain_length
@@ -66,11 +63,6 @@ class Terrain:
             self.randomized_terrain()   
         
         self.heightsamples = self.height_field_raw
-        if self.type=="trimesh":
-            self.vertices, self.triangles = terrain_utils.convert_heightfield_to_trimesh(   self.height_field_raw,
-                                                                                            self.cfg.horizontal_scale,
-                                                                                            self.cfg.vertical_scale,
-                                                                                            self.cfg.slope_treshold)
     
     def randomized_terrain(self):
         for k in range(self.cfg.num_sub_terrains):

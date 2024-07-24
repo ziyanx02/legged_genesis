@@ -75,12 +75,11 @@ class A1RoughCfg( LeggedRobotCfg ):
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
 
     class terrain:
-        terrain_type = 'flat_terrain'
-        # terrain_type = [
-        #     ['flat_terrain', 'random_uniform_terrain', 'pyramid_sloped_terrain'],
-        #     ['pyramid_sloped_terrain', 'discrete_obstacles_terrain', 'wave_terrain'],
-        #     ['random_uniform_terrain', 'pyramid_stairs_terrain', 'pyramid_sloped_terrain'],
-        # ]
+        # terrain_type = 'height_field'
+        terrain_type = [
+            ['flat_terrain', 'random_uniform_terrain'],
+            ['random_uniform_terrain', 'flat_terrain'],
+        ]
         horizontal_scale = 0.25 # [m]
         vertical_scale = 0.005 # [m]
         curriculum = False
@@ -90,16 +89,26 @@ class A1RoughCfg( LeggedRobotCfg ):
         # selected = False # select a unique terrain type and pass all arguments
         # terrain_kwargs = None # Dict of arguments for selected terrain
         # max_init_terrain_level = 5 # starting curriculum state
-        terrain_length = 10.
-        terrain_width = 10.
-        num_rows= 5 # number of terrain rows (levels)
-        num_cols = 5 # number of terrain cols (types)
+        terrain_length = 12.
+        terrain_width = 12.
+        num_rows = 2 # number of terrain rows (levels)
+        num_cols = 2 # number of terrain cols (types)
+
+    class commands:
+        curriculum = False
+        max_curriculum = 1.
+        num_commands = 4 # default: lin_vel_x, lin_vel_y, ang_vel_yaw, heading (in heading mode ang_vel_yaw is recomputed from heading error)
+        resampling_time = 10. # time before command are changed[s]
+        heading_command = False # if true: compute ang vel command from heading error
+        class ranges:
+            lin_vel_x = [0.4, 1.0] # min max [m/s]
+            lin_vel_y = [0, 0]   # min max [m/s]
+            ang_vel_yaw = [0, 0]    # min max [rad/s]
+            heading = [-3.14, 3.14]
 
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
         base_height_target = 0.25
-        class scales:
-            pass
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0002
             dof_pos_limits = -10.0

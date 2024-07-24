@@ -165,7 +165,10 @@ class OnPolicyRunner:
         ep_string = f''
         wandb_dict = {}
 
-        mean_episode_length = statistics.mean(locs['lenbuffer'])
+        if len(locs['rewbuffer']) > 0:
+            mean_episode_length = statistics.mean(locs['lenbuffer'])
+        else:
+            mean_episode_length = 1
 
         if locs['ep_infos']:
             for key in locs['ep_infos'][0]:

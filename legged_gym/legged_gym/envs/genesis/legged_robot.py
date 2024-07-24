@@ -42,7 +42,7 @@ import genesis as gs
 
 from legged_gym import LEGGED_GYM_ROOT_DIR
 from legged_gym.envs.genesis.base_task import BaseTask
-# from legged_gym.utils.terrain import Terrain
+from legged_gym.utils.terrain import Terrain
 # from legged_gym.utils.math import quat_apply_yaw, wrap_to_pi, torch_rand_sqrt_float
 from legged_gym.utils.math import *
 from legged_gym.utils.helpers import class_to_dict
@@ -433,7 +433,7 @@ class LeggedRobot(BaseTask):
         # TODO: add randomization
         self.root_states[env_ids] = self.base_init_state
         self.root_states[env_ids, :3] += self.env_origins[env_ids]
-        self.root_states[env_ids, :2] += 10 * torch.rand(self.root_states[env_ids, :2].shape, device=self.device)
+        self.root_states[env_ids, :2] += 2 * (torch.rand(self.root_states[env_ids, :2].shape, device=self.device) - 0.5)
         self.base_pos[env_ids] = self.root_states[env_ids, :3]
         self.base_quat[env_ids] = self.root_states[env_ids, 3:7]
         self.base_lin_vel[env_ids] = self.root_states[env_ids, 7:10]
@@ -612,24 +612,6 @@ class LeggedRobot(BaseTask):
         self.episode_sums = {name: torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
                              for name in self.reward_scales.keys()}
 
-    def _create_terrain(self):
-        """ Create terrains:
-            Add entity gs.morphs.Terrain with selected terrain type into the scene
-        """
-        terrain_type = self.cfg.terrain.terrain_type
-        
-        self.scene.add_entity(
-            morph=gs.morphs.Terrain(
-                n_subterrains = (self.cfg.terrain.num_rows, self.cfg.terrain.num_cols),
-                subterrain_size = (self.cfg.terrain.terrain_length, self.cfg.terrain.terrain_width),
-                horizontal_scale = self.cfg.terrain.horizontal_scale,
-                vertical_scale = self.cfg.terrain.vertical_scale,
-                subterrain_types=terrain_type,
-            ),
-        )
-        
-        self._get_env_origins()
-
     def _create_robot(self):
         """ Creates environments:
              1. loads the robot URDF/MJCF asset,
@@ -797,6 +779,30 @@ class LeggedRobot(BaseTask):
         for i in range(len(termination_contact_names)):
             self.termination_contact_indices[i] = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles[0], termination_contact_names[i])
 
+    def _create_terrain(self):
+        """ Create terrains:
+            Add entity gs.morphs.Terrain with selected terrain type into the scene
+        """
+        terrain_type = self.cfg.terrain.terrain_type
+        if terrain_type == "height_filed":
+            self.terrain = Terrain(self.cfg.terrain)
+            height_field_raw = self.terrain.height_field_raw
+        else:
+            height_field_raw = None
+        
+        self.scene.add_entity(
+            morph=gs.morphs.Terrain(
+                n_subterrains = (self.cfg.terrain.num_rows, self.cfg.terrain.num_cols),
+                subterrain_size = (self.cfg.terrain.terrain_length, self.cfg.terrain.terrain_width),
+                horizontal_scale = self.cfg.terrain.horizontal_scale,
+                vertical_scale = self.cfg.terrain.vertical_scale,
+                subterrain_types=terrain_type,
+                height_field=height_field_raw,
+            ),
+        )
+
+        self._get_env_origins()
+
     def _get_env_origins(self):
         """ Sets environment origins. On rough terrain the origins are defined by the terrain platforms.
             Otherwise create a grid.
@@ -804,12 +810,8 @@ class LeggedRobot(BaseTask):
         # TODO: read terrain_origins from genesis
         # TODO: env_origins should be related to curriculum
         # currently skip for simplicity
-        self.terrain_origins = torch.zeros([self.cfg.terrain.num_rows, self.cfg.terrain.num_cols, 3], device=self.device, requires_grad=False)
-        self.env_origins = torch.zeros([self.num_envs, 3], device=self.device, requires_grad=False)
-        self.env_origins[:, :2] = 20
-        self.env_origins[:, 2] = 0
-        return
-        if self.cfg.terrain.mesh_type in ["heightfield", "trimesh"]:
+        if self.cfg.terrain.terrain_type == "height_field":
+            raise NotImplementedError
             self.custom_origins = True
             self.env_origins = torch.zeros(self.num_envs, 3, device=self.device, requires_grad=False)
             # put robots at the origins defined by the terrain
@@ -824,12 +826,12 @@ class LeggedRobot(BaseTask):
             self.custom_origins = False
             self.env_origins = torch.zeros(self.num_envs, 3, device=self.device, requires_grad=False)
             # create a grid of robots
-            num_cols = np.floor(np.sqrt(self.num_envs))
+            # num_cols = np.floor(np.sqrt(self.num_envs))
+            num_cols = np.ceil(self.cfg.terrain.num_cols)
             num_rows = np.ceil(self.num_envs / num_cols)
-            xx, yy = torch.meshgrid(torch.arange(num_rows), torch.arange(num_cols))
-            spacing = self.cfg.env.env_spacing
-            self.env_origins[:, 0] = spacing * xx.flatten()[:self.num_envs]
-            self.env_origins[:, 1] = spacing * yy.flatten()[:self.num_envs]
+            xx, yy = torch.meshgrid(torch.arange(num_rows) % self.cfg.terrain.num_rows, torch.arange(num_cols))
+            self.env_origins[:, 0] = self.cfg.terrain.terrain_length * (xx.flatten()[:self.num_envs] + 0.5)
+            self.env_origins[:, 1] = self.cfg.terrain.terrain_width * (yy.flatten()[:self.num_envs] + 0.5)
             self.env_origins[:, 2] = 0.
 
     def _parse_cfg(self, cfg):

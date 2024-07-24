@@ -165,6 +165,7 @@ def get_args():
         {"name": "--sim_device", "type": str, "default": "cuda:0", "help": 'Device used by the Genesis, (cpu, gpu, cuda:0, cuda:1 etc..)'},
         {"name": "--device", "type": str, "default": "cuda:0", "help": 'Device used by the the whole program, (cpu, gpu, cuda:0, cuda:1 etc..)'},  
 
+        {"name": "--debug", "action": "store_true", "default": False, "help": "activate debug mode"},
         {"name": "--no_wandb", "action": "store_true", "default": False, "help": "no wandb"},
         {"name": "--wandb_offline", "action": "store_true", "default": False, "help": "use wandb offline mode"},
         {"name": "--proj_name", "type": str, "default": "genesis", "help": 'Project name used in wandb.'},
