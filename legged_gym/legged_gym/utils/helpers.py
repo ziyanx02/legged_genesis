@@ -102,21 +102,19 @@ def parse_sim_params(args, cfg):
     return sim_params
 
 def get_load_path(root, load_run=-1, checkpoint=-1):
-    try:
-        runs = os.listdir(root)
-        #TODO sort by date to handle change of month
-        runs.sort()
-        if 'exported' in runs: runs.remove('exported')
-        last_run = os.path.join(root, runs[-1])
-    except:
-        raise ValueError("No runs in this directory: " + root)
-    if load_run==-1:
-        load_run = last_run
-    else:
-        load_run = os.path.join(root, load_run)
+
+    if not os.path.isdir(root):  # use first 4 chars to mactch the run name
+        model_name_cand = os.path.basename(root)
+        model_parent = os.path.dirname(root)
+        model_names = os.listdir(model_parent)
+        model_names = [name for name in model_names if os.path.isdir(os.path.join(model_parent, name))]
+        for name in model_names:
+            if len(name) >= 6:
+                if name[:6] == model_name_cand:
+                    root = os.path.join(model_parent, name)
 
     if checkpoint==-1:
-        models = [file for file in os.listdir(load_run) if 'model' in file]
+        models = [file for file in os.listdir(root) if 'model' in file]
         models.sort(key=lambda m: '{0:0>15}'.format(m))
         model = models[-1]
     else:
@@ -143,8 +141,6 @@ def update_cfg_from_args(env_cfg, cfg_train, args):
             cfg_train.runner.experiment_name = args.experiment_name
         if args.run_name is not None:
             cfg_train.runner.run_name = args.run_name
-        if args.load_run is not None:
-            cfg_train.runner.load_run = args.load_run
         if args.checkpoint is not None:
             cfg_train.runner.checkpoint = args.checkpoint
 
@@ -156,11 +152,8 @@ def get_args():
 
     custom_parameters = [
         {"name": "--task", "type": str, "default": "anymal_c_flat", "help": "Resume training or start testing from a checkpoint. Overrides config file if provided."},
-        {"name": "--resume", "action": "store_true", "default": False,  "help": "Resume training from a checkpoint"},
         {"name": "--experiment_name", "type": str,  "help": "Name of the experiment to run or load. Overrides config file if provided."},
         {"name": "--run_name", "type": str,  "help": "Name of the run. Overrides config file if provided."},
-        {"name": "--load_run", "type": str,  "help": "Name of the run to load when resume=True. If -1: will load the last run. Overrides config file if provided."},
-        {"name": "--checkpoint", "type": int,  "help": "Saved model checkpoint number. If -1: will load the last checkpoint. Overrides config file if provided."},
         
         {"name": "--num_envs", "type": int, "help": "Number of environments to create. Overrides config file if provided."},
         {"name": "--seed", "type": int, "help": "Random seed. Overrides config file if provided."},
@@ -171,6 +164,16 @@ def get_args():
         {"name": "--rl_device", "type": str, "default": "cuda:0", "help": 'Device used by the RL algorithm, (cpu, gpu, cuda:0, cuda:1 etc..)'},
         {"name": "--sim_device", "type": str, "default": "cuda:0", "help": 'Device used by the Genesis, (cpu, gpu, cuda:0, cuda:1 etc..)'},
         {"name": "--device", "type": str, "default": "cuda:0", "help": 'Device used by the the whole program, (cpu, gpu, cuda:0, cuda:1 etc..)'},  
+
+        {"name": "--no_wandb", "action": "store_true", "default": False, "help": "no wandb"},
+        {"name": "--wandb_offline", "action": "store_true", "default": False, "help": "use wandb offline mode"},
+        {"name": "--proj_name", "type": str, "default": "genesis", "help": 'Project name used in wandb.'},
+        {"name": "--entity", "type": str, "default": "", "help": "wandb entity"},
+
+        {"name": "exptid", "type": str, "help": 'Experiment ID, i.e. 000-00-test.'},
+        {"name": "--resume", "action": "store_true", "default": False,  "help": "Resume training from a checkpoint"},
+        {"name": "--resumeid", "type": str, "help": "Resume exptid"},
+        {"name": "--checkpoint", "type": int,  "help": "Saved model checkpoint number. If -1: will load the last checkpoint. Overrides config file if provided."},
     ]
 
     # parse arguments
