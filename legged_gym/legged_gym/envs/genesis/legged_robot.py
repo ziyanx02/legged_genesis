@@ -261,6 +261,7 @@ class LeggedRobot(BaseTask):
             vis_options=gs.options.VisOptions(
                 geom_type=self.cfg.viewer.geom_type,
             ),
+            show_FPS=False,
         )
         self._create_terrain()
         self._create_robot()
@@ -432,7 +433,7 @@ class LeggedRobot(BaseTask):
         # TODO: add randomization
         self.root_states[env_ids] = self.base_init_state
         self.root_states[env_ids, :3] += self.env_origins[env_ids]
-        self.root_states[env_ids, :2] += 3 * torch.rand(self.root_states[env_ids, :2].shape, device=self.device)
+        self.root_states[env_ids, :2] += 10 * torch.rand(self.root_states[env_ids, :2].shape, device=self.device)
         self.base_pos[env_ids] = self.root_states[env_ids, :3]
         self.base_quat[env_ids] = self.root_states[env_ids, 3:7]
         self.base_lin_vel[env_ids] = self.root_states[env_ids, 7:10]
@@ -805,7 +806,7 @@ class LeggedRobot(BaseTask):
         # currently skip for simplicity
         self.terrain_origins = torch.zeros([self.cfg.terrain.num_rows, self.cfg.terrain.num_cols, 3], device=self.device, requires_grad=False)
         self.env_origins = torch.zeros([self.num_envs, 3], device=self.device, requires_grad=False)
-        self.env_origins[:, :2] = 1
+        self.env_origins[:, :2] = 20
         self.env_origins[:, 2] = 0
         return
         if self.cfg.terrain.mesh_type in ["heightfield", "trimesh"]:

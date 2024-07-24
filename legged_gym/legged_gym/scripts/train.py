@@ -40,7 +40,7 @@ import torch
 
 def train(args):
 
-    args.headless = True
+    # args.headless = False
     log_dir = LEGGED_GYM_ROOT_DIR + "/logs/{}/".format(args.proj_name) + args.exptid
     try:
         os.makedirs(log_dir)
