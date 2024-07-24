@@ -32,7 +32,7 @@ from legged_gym.envs.genesis.legged_robot_config import LeggedRobotCfg, LeggedRo
 
 class A1RoughCfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
-        num_envs = 1
+        num_envs = 10
         num_observations = 48
         episode_length_s = 2 # episode length in seconds
 
@@ -73,7 +73,28 @@ class A1RoughCfg( LeggedRobotCfg ):
         penalize_contacts_on = ["thigh"]
         terminate_after_contacts_on = ["base"]
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
-  
+
+    class terrain:
+        terrain_type = 'flat_terrain'
+        # terrain_type = [
+        #     ['flat_terrain', 'random_uniform_terrain', 'pyramid_sloped_terrain'],
+        #     ['pyramid_sloped_terrain', 'discrete_obstacles_terrain', 'wave_terrain'],
+        #     ['random_uniform_terrain', 'pyramid_stairs_terrain', 'pyramid_sloped_terrain'],
+        # ]
+        horizontal_scale = 0.25 # [m]
+        vertical_scale = 0.005 # [m]
+        curriculum = False
+        measure_heights = False
+        # measured_points_x = [-0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8] # 1mx1.6m rectangle (without center line)
+        # measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5]
+        # selected = False # select a unique terrain type and pass all arguments
+        # terrain_kwargs = None # Dict of arguments for selected terrain
+        # max_init_terrain_level = 5 # starting curriculum state
+        terrain_length = 8.
+        terrain_width = 8.
+        num_rows= 1 # number of terrain rows (levels)
+        num_cols = 1 # number of terrain cols (types)
+
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
         base_height_target = 0.25

@@ -135,6 +135,9 @@ class LeggedRobot(BaseTask):
         self.reset_buf = torch.any(torch.norm(self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
         self.time_out_buf = self.episode_length_buf > self.max_episode_length # no terminal reward for time-outs
         self.reset_buf |= self.time_out_buf
+        if self.cfg.asset.terminate_if_height_lower_than is not None:
+            self.height_illegal_buf = self.base_pos[:, self.up_axis_idx] < self.cfg.asset.terminate_if_height_lower_than
+            self.reset_buf |= self.height_illegal_buf
 
     def reset_idx(self, env_ids):
         """ Reset some environments.
@@ -621,29 +624,16 @@ class LeggedRobot(BaseTask):
             Add entity gs.morphs.Terrain with selected terrain type into the scene
         """
         terrain_type = self.cfg.terrain.terrain_type
-        if terrain_type in [
-            'flat_terrain',
-            'random_uniform_terrain',
-            'sloped_terrain',
-            'pyramid_sloped_terrain',
-            'discrete_obstacles_terrain',
-            'wave_terrain',
-            'stairs_terrain',
-            'pyramid_stairs_terrain',
-            'stepping_stones_terrain',
-        ]:
-            # TODO: correspondence of num_rows, num_cols & terrain_length, terrain_width
-            self.scene.add_entity(
-                morph=gs.morphs.Terrain(
-                    n_subterrains = (self.cfg.terrain.num_rows, self.cfg.terrain.num_cols),
-                    subterrain_size = (self.cfg.terrain.terrain_length, self.cfg.terrain.terrain_width),
-                    horizontal_scale = self.cfg.terrain.horizontal_scale,
-                    vertical_scale = self.cfg.terrain.vertical_scale,
-                    subterrain_types=terrain_type,
-                ),
-            )
-        else:
-            raise RuntimeError(f"Terrain type {terrain_type} not supported.")
+        
+        self.scene.add_entity(
+            morph=gs.morphs.Terrain(
+                n_subterrains = (self.cfg.terrain.num_rows, self.cfg.terrain.num_cols),
+                subterrain_size = (self.cfg.terrain.terrain_length, self.cfg.terrain.terrain_width),
+                horizontal_scale = self.cfg.terrain.horizontal_scale,
+                vertical_scale = self.cfg.terrain.vertical_scale,
+                subterrain_types=terrain_type,
+            ),
+        )
         
         self._get_env_origins()
 
@@ -823,7 +813,7 @@ class LeggedRobot(BaseTask):
         # currently skip for simplicity
         self.terrain_origins = torch.zeros([self.cfg.terrain.num_rows, self.cfg.terrain.num_cols, 3], device=self.device, requires_grad=False)
         self.env_origins = torch.zeros([self.num_envs, 3], device=self.device, requires_grad=False)
-        self.env_origins[:, :2] = 3
+        self.env_origins[:, :2] = 1
         self.env_origins[:, 2] = 0
         return
         if self.cfg.terrain.mesh_type in ["heightfield", "trimesh"]:

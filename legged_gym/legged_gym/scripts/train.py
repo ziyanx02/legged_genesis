@@ -30,6 +30,7 @@
 
 import numpy as np
 import os
+import wandb
 from datetime import datetime
 
 # import isaacgym
@@ -38,8 +39,25 @@ from legged_gym.utils import get_args, task_registry
 import torch
 
 def train(args):
+
+    args.headless = True
+    log_dir = LEGGED_GYM_ROOT_DIR + "/logs/{}/".format(args.proj_name) + args.exptid
+    try:
+        os.makedirs(log_dir)
+    except:
+        pass
+    if args.no_wandb:
+        mode = "disabled"
+    elif args.wandb_offline:
+        mode = "offline"
+    else:
+        mode="online"
+    wandb.init(project=args.proj_name, name=args.exptid, entity=args.entity, mode=mode, dir=log_dir)
+    wandb.save(LEGGED_GYM_ENVS_DIR + "/genesis/legged_robot_config.py", policy="now")
+    wandb.save(LEGGED_GYM_ENVS_DIR + "/genesis/legged_robot.py", policy="now")
+    wandb.save(LEGGED_GYM_ENVS_DIR + "/genesis/a1_config.py", policy="now")
     env, env_cfg = task_registry.make_env(name=args.task, args=args)
-    ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args)
+    ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, log_root=log_dir)
     ppo_runner.learn(num_learning_iterations=train_cfg.runner.max_iterations, init_at_random_ep_len=True)
 
 if __name__ == '__main__':
