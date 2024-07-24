@@ -32,9 +32,9 @@ from legged_gym.envs.genesis.legged_robot_config import LeggedRobotCfg, LeggedRo
 
 class A1RoughCfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
-        num_envs = 10
+        num_envs = 4000
         num_observations = 48
-        episode_length_s = 2 # episode length in seconds
+        episode_length_s = 20 # episode length in seconds
 
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.42] # x,y,z [m]
@@ -90,10 +90,10 @@ class A1RoughCfg( LeggedRobotCfg ):
         # selected = False # select a unique terrain type and pass all arguments
         # terrain_kwargs = None # Dict of arguments for selected terrain
         # max_init_terrain_level = 5 # starting curriculum state
-        terrain_length = 8.
-        terrain_width = 8.
-        num_rows= 1 # number of terrain rows (levels)
-        num_cols = 1 # number of terrain cols (types)
+        terrain_length = 10.
+        terrain_width = 10.
+        num_rows= 5 # number of terrain rows (levels)
+        num_cols = 5 # number of terrain cols (types)
 
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9

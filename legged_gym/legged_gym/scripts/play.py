@@ -31,13 +31,19 @@
 from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
 
-import isaacgym
 from legged_gym.envs import *
 from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Logger
 
 import numpy as np
 import torch
 
+def get_load_path(root, checkpoint=-1, model_name_include="model"):
+    if checkpoint==-1:
+        models = [file for file in os.listdir(root) if model_name_include in file]
+        models.sort(key=lambda m: '{0:0>15}'.format(m))
+        model = models[-1]
+        checkpoint = model.split("_")[-1].split(".")[0]
+    return model, checkpoint
 
 def play(args):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
