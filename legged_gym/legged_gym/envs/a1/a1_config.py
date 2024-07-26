@@ -28,7 +28,7 @@
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
-from legged_gym.envs.genesis.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
+from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
 
 class A1RoughCfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
@@ -81,16 +81,16 @@ class A1RoughCfg( LeggedRobotCfg ):
             ['random_uniform_terrain',],
             ['pyramid_sloped_terrain',],
         ]
-        horizontal_scale = 0.25 # [m]
+        horizontal_scale = 0.1 # [m]
         vertical_scale = 0.005 # [m]
         curriculum = False
         measure_heights = False
-        # measured_points_x = [-0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8] # 1mx1.6m rectangle (without center line)
-        # measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5]
+        measured_points_x = [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8,] # 0.8mx0.8m rectangle (without center line)
+        measured_points_y = [-0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4,]
         # selected = False # select a unique terrain type and pass all arguments
         # terrain_kwargs = None # Dict of arguments for selected terrain
         # max_init_terrain_level = 5 # starting curriculum state
-        terrain_length = 5.
+        terrain_length = 6.
         terrain_width = 12.
         num_rows = 2 # number of terrain rows (levels)
         num_cols = 1 # number of terrain cols (types)
