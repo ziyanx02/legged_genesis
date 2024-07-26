@@ -38,8 +38,8 @@ from legged_gym import LEGGED_GYM_ROOT_DIR, LEGGED_GYM_ENVS_DIR
 # from .cassie.cassie import Cassie
 # from .cassie.cassie_config import CassieRoughCfg, CassieRoughCfgPPO
 # from .a1.a1_config import A1RoughCfg, A1RoughCfgPPO
-from .genesis.legged_robot import LeggedRobot
-from .genesis.a1_config import A1RoughCfg, A1RoughCfgPPO
+from .base.legged_robot import LeggedRobot
+from .a1.a1_config import A1RoughCfg, A1RoughCfgPPO
 
 
 import os
