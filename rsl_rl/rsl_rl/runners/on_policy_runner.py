@@ -66,6 +66,7 @@ class OnPolicyRunner:
         alg_class = eval(self.cfg["algorithm_class_name"]) # PPO
         self.alg: PPO = alg_class(actor_critic, device=self.device, **self.alg_cfg)
         self.num_steps_per_env = self.cfg["num_steps_per_env"]
+        self.log_interval = self.cfg["log_interval"]
         self.save_interval = self.cfg["save_interval"]
         self.record_interval = self.cfg["record_interval"]
         if self.record_interval > 0:
@@ -133,7 +134,7 @@ class OnPolicyRunner:
             mean_value_loss, mean_surrogate_loss = self.alg.update()
             stop = time.time()
             learn_time = stop - start
-            if self.log_dir is not None:
+            if self.log_dir is not None and it % self.log_interval == 0:
                 self.log(locals())
             if self.record_video:
                 self.log_video()
@@ -198,11 +199,11 @@ class OnPolicyRunner:
         wandb_dict['Perf/collection time'] = locs['collection_time']
         wandb_dict['Perf/learning_time'] = locs['learn_time']
 
-        wandb.log(wandb_dict, step=locs['it'])
-
         if len(locs['rewbuffer']) > 0:
             wandb_dict['Train/mean_reward'] = statistics.mean(locs['rewbuffer'])
             wandb_dict['Train/mean_episode_length'] = statistics.mean(locs['lenbuffer'])
+
+        wandb.log(wandb_dict, step=locs['it'])
 
         str = f" \033[1m Learning iteration {locs['it']}/{self.current_learning_iteration + locs['num_learning_iterations']} \033[0m "
 

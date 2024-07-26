@@ -100,7 +100,7 @@ class LeggedRobot(BaseTask):
         clip_actions = self.cfg.normalization.clip_actions
         self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
         # step physics and render each frame
-        self.render()
+        # self.render()
 
         for dec in range(self.cfg.control.decimation):
             self.torques = self._compute_torques(self.actions).view(self.torques.shape)
@@ -183,7 +183,7 @@ class LeggedRobot(BaseTask):
         # reset buffers
         self.last_actions[env_ids] = 0.
         self.last_dof_vel[env_ids] = 0.
-        # self.feet_air_time[env_ids] = 0. TODO
+        self.feet_air_time[env_ids] = 0.
         self.episode_length_buf[env_ids] = 0
         self.reset_buf[env_ids] = 1
         # fill extras
@@ -288,7 +288,7 @@ class LeggedRobot(BaseTask):
         )
         self._create_terrain()
         self._create_robot()
-        self._set_camera()
+        # self._set_camera()
 
     def build_scenes(self):
         """ Build parallel envs and randomizations """
@@ -478,12 +478,12 @@ class LeggedRobot(BaseTask):
         """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity. 
         """
         
+        return
         max_vel = self.cfg.domain_rand.max_push_vel_xy
         push_vel = self.robot.get_dofs_velocity() # (num_envs, num_dof) [0:3] ~ base_link_vel
         push_vel[:, :2] += torch_rand_float(-max_vel, max_vel, (self.num_envs, 2), device=self.device)
         self.robot.set_dofs_velocity(push_vel)
 
-        return
         
         max_vel = self.cfg.domain_rand.max_push_vel_xy
         self.root_states[:, 7:9] = torch_rand_float(-max_vel, max_vel, (self.num_envs, 2), device=self.device) # lin vel x/y

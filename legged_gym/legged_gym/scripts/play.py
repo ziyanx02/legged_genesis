@@ -33,6 +33,7 @@ import os
 
 from legged_gym.envs import *
 from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Logger
+import faulthandler
 
 import numpy as np
 import torch
@@ -46,11 +47,13 @@ def get_load_path(root, checkpoint=-1, model_name_include="model"):
     return model, checkpoint
 
 def play(args):
+    log_pth = "../../logs/{}/".format(args.proj_name) + args.exptid
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
-    env_cfg.env.num_envs = min(env_cfg.env.num_envs, 50)
-    env_cfg.terrain.num_rows = 5
-    env_cfg.terrain.num_cols = 5
+    env_cfg.env.num_envs = min(env_cfg.env.num_envs, 2)
+    env_cfg.terrain.terrain_type = 'flat_terrain'
+    env_cfg.terrain.num_rows = 1
+    env_cfg.terrain.num_cols = 1
     env_cfg.terrain.curriculum = False
     env_cfg.noise.add_noise = False
     env_cfg.domain_rand.randomize_friction = False
@@ -61,7 +64,7 @@ def play(args):
     obs = env.get_observations()
     # load policy
     train_cfg.runner.resume = True
-    ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, train_cfg=train_cfg)
+    ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, train_cfg=train_cfg, log_root=log_pth)
     policy = ppo_runner.get_inference_policy(device=env.device)
     
     # export policy as a jit module (used to run it from C++)
@@ -120,6 +123,7 @@ def play(args):
             logger.print_rewards()
 
 if __name__ == '__main__':
+    faulthandler.enable()
     EXPORT_POLICY = True
     RECORD_FRAMES = False
     MOVE_CAMERA = False

@@ -77,30 +77,6 @@ def set_seed(seed):
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-def parse_sim_params(args, cfg):
-    # code from Isaac Gym Preview 2
-    # initialize sim params
-    sim_params = gymapi.SimParams()
-
-    # set some values from args
-    if args.physics_engine == gymapi.SIM_FLEX:
-        if args.device != "cpu":
-            print("WARNING: Using Flex with GPU instead of PHYSX!")
-    elif args.physics_engine == gymapi.SIM_PHYSX:
-        sim_params.physx.use_gpu = args.use_gpu
-        sim_params.physx.num_subscenes = args.subscenes
-    sim_params.use_gpu_pipeline = args.use_gpu_pipeline
-
-    # if sim options are provided in cfg, parse them and update/override above:
-    if "sim" in cfg:
-        gymutil.parse_sim_config(cfg["sim"], sim_params)
-
-    # Override num_threads if passed on the command line
-    if args.physics_engine == gymapi.SIM_PHYSX and args.num_threads > 0:
-        sim_params.physx.num_threads = args.num_threads
-
-    return sim_params
-
 def get_load_path(root, load_run=-1, checkpoint=-1):
 
     if not os.path.isdir(root):  # use first 4 chars to mactch the run name
@@ -120,7 +96,7 @@ def get_load_path(root, load_run=-1, checkpoint=-1):
     else:
         model = "model_{}.pt".format(checkpoint) 
 
-    load_path = os.path.join(load_run, model)
+    load_path = os.path.join(root, model)
     return load_path
 
 def update_cfg_from_args(env_cfg, cfg_train, args):
