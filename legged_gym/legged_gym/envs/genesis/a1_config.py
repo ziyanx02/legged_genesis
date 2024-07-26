@@ -72,13 +72,14 @@ class A1RoughCfg( LeggedRobotCfg ):
         foot_name = "calf"
         penalize_contacts_on = ["thigh"]
         terminate_after_contacts_on = ["base"]
+        terminate_if_height_lower_than = None
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
 
     class terrain:
         # terrain_type = 'height_field'
         terrain_type = [
             ['flat_terrain', 'random_uniform_terrain'],
-            ['random_uniform_terrain', 'flat_terrain'],
+            ['random_uniform_terrain', 'pyramid_sloped_terrain'],
         ]
         horizontal_scale = 0.25 # [m]
         vertical_scale = 0.005 # [m]
