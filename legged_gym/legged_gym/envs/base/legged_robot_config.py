@@ -185,9 +185,8 @@ class LeggedRobotCfg(BaseConfig):
         debug = False
     
     class camera:
-        res = (224, 224),
         pos = [0., -1., 1.]  # [m]
-        fov = 40
+        fov = 80
         num_upload_frames = 150
 
     class sim:

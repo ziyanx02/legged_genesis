@@ -57,6 +57,7 @@ def train(args):
         args.num_envs = 1
         mode = "disabled"
     wandb.login(key="1d5fe5b941feff91e5dbb834d4f687fdbec8e516")
+    args.entity = "ziyanx02"
     wandb.init(project=args.proj_name, name=args.exptid, entity=args.entity, mode=mode, dir=log_dir)
     wandb.save(LEGGED_GYM_ENVS_DIR + "/genesis/legged_robot_config.py", policy="now")
     wandb.save(LEGGED_GYM_ENVS_DIR + "/genesis/legged_robot.py", policy="now")
