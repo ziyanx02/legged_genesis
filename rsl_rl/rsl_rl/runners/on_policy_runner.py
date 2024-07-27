@@ -35,6 +35,7 @@ import statistics
 
 import torch
 import wandb
+import numpy as np
 
 from rsl_rl.algorithms import PPO
 from rsl_rl.modules import ActorCritic, ActorCriticRecurrent
@@ -137,7 +138,7 @@ class OnPolicyRunner:
             if self.log_dir is not None and it % self.log_interval == 0:
                 self.log(locals())
             if self.record_video:
-                self.log_video()
+                self.log_video(it)
             if it < 2500:
                 if it % self.save_interval == 0:
                     self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(it)))
@@ -262,7 +263,12 @@ class OnPolicyRunner:
         return self.alg.actor_critic.act_inference
 
     def start_recording(self):
-        pass
+        self.env.start_recording()
 
-    def log_video(self):
-        pass
+    def log_video(self, it):
+        frames = self.env.get_recorded_frames()
+        if frames is None:
+            return
+        else:
+            video_array = np.concatenate([np.expand_dims(frame, axis=0) for frame in frames ], axis=0).swapaxes(1, 3).swapaxes(2, 3)
+            wandb.log({"video": wandb.Video(video_array, fps=int(1/self.env.dt))}, step=it)

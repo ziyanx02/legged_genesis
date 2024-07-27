@@ -32,7 +32,7 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 
 class A1RoughCfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
-        num_envs = 4000
+        num_envs = 100
         num_observations = 48
         episode_length_s = 20 # episode length in seconds
 

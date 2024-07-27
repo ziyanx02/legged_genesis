@@ -177,13 +177,18 @@ class LeggedRobotCfg(BaseConfig):
 
     # viewer camera:
     class viewer:
-        ref_env = 0
         pos = [0., 0., 5.]  # [m]
         lookat = [5., 5., 0.]  # [m]
         fov = 40
         geom_type = 'visual' # ['visual', 'collision', 'collision_sdf']
         visualize_contact = False
         debug = False
+    
+    class camera:
+        res = (224, 224),
+        pos = [0., -1., 1.]  # [m]
+        fov = 40
+        num_upload_frames = 150
 
     class sim:
         dt =  0.005

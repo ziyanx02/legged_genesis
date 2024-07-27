@@ -77,6 +77,26 @@ class LeggedRobot(BaseTask):
         self._prepare_reward_function()
         self.init_done = True
     
+    def _render_headless(self):
+        if self._recording and len(self._recorded_frames) < self.cfg.camera.num_upload_frames:
+            robot_pos = np.array(self.root_states[0, :3].cpu())
+            self._floating_camera.set_pose(pos=robot_pos + np.array(self.cfg.camera.pos), lookat=robot_pos)
+            frame, _, _ = self._floating_camera.render()
+            self._recorded_frames.append(frame)
+
+    def get_recorded_frames(self):
+        if len(self._recorded_frames) == self.cfg.camera.num_upload_frames:
+            frames = self._recorded_frames
+            self._recorded_frames = []
+            self._recording = False
+            return frames
+        else:
+            return None
+    
+    def start_recording(self):
+        self._recorded_frames = []
+        self._recording = True
+        
     def render(self, img_path=None, sync_frame_time=True):
 
         img_np, _, _ = self.camera.render(rgb=True, depth=True, segmentation=True) # type: np.ndarray    
@@ -99,7 +119,6 @@ class LeggedRobot(BaseTask):
         clip_actions = self.cfg.normalization.clip_actions
         self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
         # step physics and render each frame
-        # self.render()
 
         for dec in range(self.cfg.control.decimation):
             self.torques = self._compute_torques(self.actions).view(self.torques.shape)
@@ -143,12 +162,15 @@ class LeggedRobot(BaseTask):
 
         if self.cfg.viewer.debug:
             self._draw_debug_vis()
+        
+        self._render_headless()
 
     def check_termination(self):
         """ Check if environments need to be reset
         """
         self.reset_buf = torch.any(torch.norm(self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
         self.time_out_buf = self.episode_length_buf > self.max_episode_length # no terminal reward for time-outs
+        self.reset_buf |= torch.logical_or(torch.abs(self.rpy[:,1])>1.0, torch.abs(self.rpy[:,0])>0.8)
         self.reset_buf |= self.time_out_buf
         if self.cfg.asset.terminate_if_height_lower_than is not None:
             self.height_illegal_buf = self.base_pos[:, self.up_axis_idx] < self.cfg.asset.terminate_if_height_lower_than
@@ -287,7 +309,7 @@ class LeggedRobot(BaseTask):
         )
         self._create_terrain()
         self._create_robot()
-        # self._set_camera()
+        self._set_camera()
 
     def build_scenes(self):
         """ Build parallel envs and randomizations """
@@ -600,6 +622,7 @@ class LeggedRobot(BaseTask):
         self.base_pos = self.robot.get_pos()      # (num_envs, 3)
         base_quat = self.robot.get_quat()         # (num_envs, 4)
         self.base_quat = torch.cat([base_quat[:, 1:], base_quat[:, :1]], dim=1)
+        self.rpy = get_euler_xyz(self.base_quat[:])
         self.root_states = torch.cat([self.base_pos, self.base_quat, self.robot.get_vel(), self.robot.get_ang()], dim=1)
 
         self.dof_pos = self.robot.get_dofs_position()[:, 6:] # (num_envs, num_joints)
@@ -794,12 +817,16 @@ class LeggedRobot(BaseTask):
         )
         self.images = []
 
-        return
+        self._floating_camera = self.scene.add_camera(
+            pos=np.array(self.cfg.camera.pos),
+            lookat=np.array([0, 0, 0]),
+            # res=self.cfg.camera.res,
+            fov=self.cfg.camera.fov,
+            GUI=False,
+        )
 
-        raise NotImplementedError
-        cam_pos = gymapi.Vec3(position[0], position[1], position[2])
-        cam_target = gymapi.Vec3(lookat[0], lookat[1], lookat[2])
-        self.gym.viewer_camera_look_at(self.viewer, None, cam_pos, cam_target)
+        self._recording = False
+        self._recorded_frames = []
 
     def _get_env_origins(self):
         """ Sets environment origins. On rough terrain the origins are defined by the terrain platforms.
