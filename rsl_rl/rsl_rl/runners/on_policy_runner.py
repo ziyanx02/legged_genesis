@@ -135,6 +135,10 @@ class OnPolicyRunner:
             mean_value_loss, mean_surrogate_loss = self.alg.update()
             stop = time.time()
             learn_time = stop - start
+
+            self.tot_timesteps += self.num_steps_per_env * self.env.num_envs
+            self.tot_time += collection_time + learn_time
+
             if self.log_dir is not None and it % self.log_interval == 0:
                 self.log(locals())
             if self.record_video:
@@ -160,8 +164,6 @@ class OnPolicyRunner:
         self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(self.current_learning_iteration)))
 
     def log(self, locs, width=80, pad=35):
-        self.tot_timesteps += self.num_steps_per_env * self.env.num_envs
-        self.tot_time += locs['collection_time'] + locs['learn_time']
         iteration_time = locs['collection_time'] + locs['learn_time']
 
         ep_string = f''

@@ -60,8 +60,8 @@ class H1RoughCfg( LeggedRobotCfg ):
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/h1/urdf/h1.urdf'
         name = "h1"
-        foot_name = "ankle"
-        penalize_contacts_on = ["hip", "knee"]
+        foot_name = ["ankle",]
+        penalize_contacts_on = ["hip", "knee",]
         terminate_after_contacts_on = ["pelvis"]
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False

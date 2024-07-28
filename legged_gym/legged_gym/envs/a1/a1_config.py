@@ -69,7 +69,7 @@ class A1RoughCfg( LeggedRobotCfg ):
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/a1/urdf/a1.urdf'
         name = "a1"
-        foot_name = "calf"
+        foot_name = ["calf",]
         penalize_contacts_on = ["thigh"]
         terminate_after_contacts_on = ["base"]
         terminate_if_height_lower_than = None
