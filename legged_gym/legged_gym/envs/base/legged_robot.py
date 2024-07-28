@@ -688,6 +688,9 @@ class LeggedRobot(BaseTask):
                 pos = self.cfg.init_state.pos,
                 scale = 1.0,
             ),
+            material=gs.materials.Rigid(
+                friction=1.0,
+            ),
             visualize_contact=self.cfg.viewer.visualize_contact
         )
 
@@ -761,49 +764,56 @@ class LeggedRobot(BaseTask):
             # TODO: refactor Terrain
             self.terrain = Terrain(self.cfg.terrain)
             height_field_raw = self.terrain.height_field_raw
+        elif terrain_type == "plane":
+
+            self.scene.add_entity(
+                gs.morphs.URDF(file='urdf/plane/plane.urdf', fixed=True),
+            )
+            self.terrain_origins = torch.tensor([[0., 0., 0.,],], device=self.device)
+
         else:
             height_field_raw = None
-        
-        """ Currently only support using subterrains to get terrain_origin """
+            
+            """ Currently only support using subterrains to get terrain_origin """
 
-        # y 
-        # ^ |-------------num_rows------------|
-        # | |-terrain_length-|                |
-        # | +----------------+----------------+----
-        # | |                |                |   |
-        # | |                |                |   |
-        # | |  terrain_type  |  terrain_type  |   num_cols
-        # | |     [0, 0]     |     [0, 1]     |   terrain_width
-        # | |                |                |   |
-        # | |                |                |   |
-        # | +----------------+----------------+----
-        # O---------------------------------------------> x
+            # y 
+            # ^ |-------------num_rows------------|
+            # | |-terrain_length-|                |
+            # | +----------------+----------------+----
+            # | |                |                |   |
+            # | |                |                |   |
+            # | |  terrain_type  |  terrain_type  |   num_cols
+            # | |     [0, 0]     |     [0, 1]     |   terrain_width
+            # | |                |                |   |
+            # | |                |                |   |
+            # | +----------------+----------------+----
+            # O---------------------------------------------> x
 
-        self.horizontal_scale = self.cfg.terrain.horizontal_scale
-        self.vertical_scale = self.cfg.terrain.vertical_scale
+            self.horizontal_scale = self.cfg.terrain.horizontal_scale
+            self.vertical_scale = self.cfg.terrain.vertical_scale
 
-        # create terrain
-        self.terrain = self.scene.add_entity(
-            morph=gs.morphs.Terrain(
-                n_subterrains = (self.cfg.terrain.num_rows, self.cfg.terrain.num_cols),
-                subterrain_size = (self.cfg.terrain.terrain_length, self.cfg.terrain.terrain_width),
-                horizontal_scale = self.horizontal_scale,
-                vertical_scale = self.vertical_scale,
-                subterrain_types=terrain_type,
-                height_field=height_field_raw,
-            ),
-        )
+            # create terrain
+            self.terrain = self.scene.add_entity(
+                morph=gs.morphs.Terrain(
+                    n_subterrains = (self.cfg.terrain.num_rows, self.cfg.terrain.num_cols),
+                    subterrain_size = (self.cfg.terrain.terrain_length, self.cfg.terrain.terrain_width),
+                    horizontal_scale = self.horizontal_scale,
+                    vertical_scale = self.vertical_scale,
+                    subterrain_types=terrain_type,
+                    height_field=height_field_raw,
+                ),
+            )
 
-        # get terrain origins
-        rows = 0.5 + torch.arange(0, self.cfg.terrain.num_rows, 1, device="cuda", requires_grad=False).unsqueeze(1).repeat(1, self.cfg.terrain.num_cols).unsqueeze(-1)
-        cols = 0.5 + torch.arange(0, self.cfg.terrain.num_cols, 1, device="cuda", requires_grad=False).unsqueeze(0).repeat(self.cfg.terrain.num_rows, 1).unsqueeze(-1)
+            # get terrain origins
+            rows = 0.5 + torch.arange(0, self.cfg.terrain.num_rows, 1, device="cuda", requires_grad=False).unsqueeze(1).repeat(1, self.cfg.terrain.num_cols).unsqueeze(-1)
+            cols = 0.5 + torch.arange(0, self.cfg.terrain.num_cols, 1, device="cuda", requires_grad=False).unsqueeze(0).repeat(self.cfg.terrain.num_rows, 1).unsqueeze(-1)
 
-        xys = torch.cat([rows * self.cfg.terrain.terrain_length, cols * self.cfg.terrain.terrain_width], dim=1).reshape(-1, 2)
-        self.height_field_raw = torch.tensor(self.terrain.metadata["height_field"], device=self.device, requires_grad=False)
-        xy_indices = torch.ceil(xys / self.horizontal_scale).to(torch.long)
-        zs = self.height_field_raw[xy_indices[:, 0], xy_indices[:, 1]].unsqueeze(-1) * self.vertical_scale
-        
-        self.terrain_origins = torch.cat([xys, zs], dim=1)
+            xys = torch.cat([rows * self.cfg.terrain.terrain_length, cols * self.cfg.terrain.terrain_width], dim=1).reshape(-1, 2)
+            self.height_field_raw = torch.tensor(self.terrain.metadata["height_field"], device=self.device, requires_grad=False)
+            xy_indices = torch.ceil(xys / self.horizontal_scale).to(torch.long)
+            zs = self.height_field_raw[xy_indices[:, 0], xy_indices[:, 1]].unsqueeze(-1) * self.vertical_scale
+            
+            self.terrain_origins = torch.cat([xys, zs], dim=1)
 
     def _set_camera(self):
         """ Set camera position and direction
@@ -845,6 +855,8 @@ class LeggedRobot(BaseTask):
             self.max_terrain_level = self.cfg.terrain.num_rows
             self.terrain_origins = torch.from_numpy(self.terrain.env_origins).to(self.device).to(torch.float)
             self.env_origins[:] = self.terrain_origins[self.terrain_levels, self.terrain_types]
+        elif self.cfg.terrain.terrain_type == "plane":
+            self.env_origins = self.terrain_origins.repeat(self.num_envs, 1)
         else:
             # curriculum not implemented
             self.custom_origins = False
@@ -923,6 +935,12 @@ class LeggedRobot(BaseTask):
         return heights.view(self.num_envs, -1) * self.vertical_scale
 
     #------------ reward functions----------------
+    def _reward_alive(self):
+        # Reward to stay alive
+        alive_rew = torch.ones_like(self.reset_buf, dtype=torch.float, device=self.device)
+        alive_rew[self.reset_buf] = 0
+        return alive_rew
+    
     def _reward_lin_vel_z(self):
         # Penalize z axis base linear velocity
         return torch.square(self.base_lin_vel[:, 2])

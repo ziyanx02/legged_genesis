@@ -62,9 +62,9 @@ def train(args):
     wandb.login(key="1d5fe5b941feff91e5dbb834d4f687fdbec8e516")
     args.entity = "ziyanx02"
     wandb.init(project=args.proj_name, name=args.exptid, entity=args.entity, mode=mode, dir=log_dir)
-    wandb.save(LEGGED_GYM_ENVS_DIR + "/genesis/legged_robot_config.py", policy="now")
-    wandb.save(LEGGED_GYM_ENVS_DIR + "/genesis/legged_robot.py", policy="now")
-    wandb.save(LEGGED_GYM_ENVS_DIR + "/genesis/a1_config.py", policy="now")
+    wandb.save(LEGGED_GYM_ENVS_DIR + "/base/legged_robot_config.py", policy="now")
+    wandb.save(LEGGED_GYM_ENVS_DIR + "/base/legged_robot.py", policy="now")
+    wandb.save(LEGGED_GYM_ENVS_DIR + f"/{args.task}/{args.task}_config.py", policy="now")
     env, env_cfg = task_registry.make_env(name=args.task, args=args)
     ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, log_root=log_dir)
     ppo_runner.learn(num_learning_iterations=train_cfg.runner.max_iterations, init_at_random_ep_len=True)

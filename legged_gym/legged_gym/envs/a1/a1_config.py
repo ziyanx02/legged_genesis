@@ -76,11 +76,11 @@ class A1RoughCfg( LeggedRobotCfg ):
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
 
     class terrain:
-        # terrain_type = 'height_field'
-        terrain_type = [
-            ['random_uniform_terrain',],
-            ['pyramid_sloped_terrain',],
-        ]
+        # terrain_type = [
+        #     ['random_uniform_terrain',],
+        #     ['pyramid_sloped_terrain',],
+        # ]
+        terrain_type = 'plane'
         horizontal_scale = 0.1 # [m]
         vertical_scale = 0.005 # [m]
         curriculum = False

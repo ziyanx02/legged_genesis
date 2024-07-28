@@ -41,7 +41,7 @@ class LeggedRobotCfg(BaseConfig):
         episode_length_s = 20 # episode length in seconds
 
     class terrain:
-        terrain_type = 'flat_terrain' # "heightfield" # none, plane, heightfield or trimesh
+        terrain_type = 'plane' # "plane" or "flat_terrain"
         horizontal_scale = 0.25 # [m]
         vertical_scale = 0.005 # [m]
         # border_size = 25 # [m]
@@ -179,8 +179,8 @@ class LeggedRobotCfg(BaseConfig):
 
     # viewer camera:
     class viewer:
-        pos = [5., 5., 5.]  # [m]
-        lookat = [10., 10., 1.]  # [m]
+        pos = [-5., -5., 5.]  # [m]
+        lookat = [0., 0., 1.]  # [m]
         fov = 40
         geom_type = 'visual' # ['visual', 'collision', 'collision_sdf']
         visualize_contact = False
