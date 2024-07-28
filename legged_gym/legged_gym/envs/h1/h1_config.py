@@ -63,7 +63,6 @@ class H1RoughCfg( LeggedRobotCfg ):
         foot_name = ["ankle",]
         penalize_contacts_on = ["hip", "knee",]
         terminate_after_contacts_on = ["pelvis"]
-        self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
   
     class rewards( LeggedRobotCfg.rewards ):
