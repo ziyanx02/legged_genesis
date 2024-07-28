@@ -1,22 +1,22 @@
 from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
 
-class GO2RoughCfg( LeggedRobotCfg ):
+class GO2Cfg( LeggedRobotCfg ):
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.42] # x,y,z [m]
         default_joint_angles = { # = target angles [rad] when action = 0.0
-            'FR_hip_joint': 0.,  # [rad]
             'FL_hip_joint': 0.,   # [rad]
-            'RR_hip_joint': 0.,   # [rad]
+            'FR_hip_joint': 0.,  # [rad]
             'RL_hip_joint': 0.,   # [rad]
+            'RR_hip_joint': 0.,   # [rad]
 
-            'FR_thigh_joint': 0.8,     # [rad]
             'FL_thigh_joint': 0.8,     # [rad]
-            'RR_thigh_joint': 1.,   # [rad]
+            'FR_thigh_joint': 0.8,     # [rad]
             'RL_thigh_joint': 1.,   # [rad]
+            'RR_thigh_joint': 1.,   # [rad]
 
             'FL_calf_joint': -1.5,   # [rad]
-            'RL_calf_joint': -1.5,    # [rad]
             'FR_calf_joint': -1.5,  # [rad]
+            'RL_calf_joint': -1.5,    # [rad]
             'RR_calf_joint': -1.5,    # [rad]
         }
 
@@ -45,11 +45,11 @@ class GO2RoughCfg( LeggedRobotCfg ):
             dof_pos_limits = -10.0
             base_height = -100.0
 
-class GO2RoughCfgPPO( LeggedRobotCfgPPO ):
+class GO2CfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
         entropy_coef = 0.01
     class runner( LeggedRobotCfgPPO.runner ):
         run_name = ''
-        experiment_name = 'rough_go2'
+        experiment_name = 'go2'
 
   

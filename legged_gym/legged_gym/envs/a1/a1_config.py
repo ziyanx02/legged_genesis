@@ -30,7 +30,7 @@
 
 from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
 
-class A1RoughCfg( LeggedRobotCfg ):
+class A1Cfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
         num_observations = 48
         episode_length_s = 20 # episode length in seconds
@@ -101,11 +101,11 @@ class A1RoughCfg( LeggedRobotCfg ):
             dof_pos_limits = -10.0
             base_height = -100.0
 
-class A1RoughCfgPPO( LeggedRobotCfgPPO ):
+class A1CfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
         entropy_coef = 0.01
     class runner( LeggedRobotCfgPPO.runner ):
         run_name = ''
-        experiment_name = 'rough_a1'
+        experiment_name = 'a1'
 
   

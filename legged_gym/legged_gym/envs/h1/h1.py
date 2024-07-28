@@ -28,18 +28,26 @@
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
-from legged_gym import LEGGED_GYM_ROOT_DIR, LEGGED_GYM_ENVS_DIR
-from .base.legged_robot import LeggedRobot
-from .a1.a1_config import A1Cfg, A1CfgPPO
-from .go2.go2_config import GO2Cfg, GO2CfgPPO
-from .h1.h1 import H1
-from .h1.h1_config import H1Cfg, H1CfgPPO
-
-
+from legged_gym import LEGGED_GYM_ROOT_DIR, envs
+from time import time
+from warnings import WarningMessage
+import numpy as np
 import os
 
-from legged_gym.utils.task_registry import task_registry
+import torch
+from torch import Tensor
+from typing import Tuple, Dict
 
-task_registry.register( "a1", LeggedRobot, A1Cfg(), A1CfgPPO() )
-task_registry.register( "go2", LeggedRobot, GO2Cfg(), GO2CfgPPO() )
-task_registry.register( "h1", H1, H1Cfg(), H1CfgPPO() )
+import genesis as gs
+
+from legged_gym import LEGGED_GYM_ROOT_DIR
+from legged_gym.utils.math import *
+from legged_gym.utils.helpers import class_to_dict
+from legged_gym.envs.base.legged_robot import LeggedRobot
+
+class H1(LeggedRobot):
+
+    #------------ reward functions----------------
+    def _reward_hip_yaw(self):
+        # Penalize hip yaw
+        return torch.square(self.dof_pos[:, 6:8]).sum(dim=1)
