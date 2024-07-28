@@ -103,6 +103,8 @@ class LeggedRobotCfg(BaseConfig):
         penalize_contacts_on = []
         terminate_after_contacts_on = []
         terminate_if_height_lower_than = 0
+        terminate_if_roll_greater_than = 0.8
+        terminate_if_pitch_greater_than = 1.0
         disable_gravity = False
         collapse_fixed_joints = True # merge bodies connected by fixed joints. Specific fixed joints can be kept by adding " <... dont_collapse="true">
         fix_base_link = False # fixe the base of the robot

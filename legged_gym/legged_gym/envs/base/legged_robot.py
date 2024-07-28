@@ -170,7 +170,7 @@ class LeggedRobot(BaseTask):
         """
         self.reset_buf = torch.any(torch.norm(self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
         self.time_out_buf = self.episode_length_buf > self.max_episode_length # no terminal reward for time-outs
-        self.reset_buf |= torch.logical_or(torch.abs(self.rpy[:,1])>1.0, torch.abs(self.rpy[:,0])>0.8)
+        self.reset_buf |= torch.logical_or(torch.abs(self.rpy[:,1]) > self.cfg.asset.terminate_if_pitch_greater_than, torch.abs(self.rpy[:,0]) > self.cfg.asset.terminate_if_roll_greater_than)
         self.reset_buf |= self.time_out_buf
         if self.cfg.asset.terminate_if_height_lower_than is not None:
             self.height_illegal_buf = self.base_pos[:, self.up_axis_idx] < self.cfg.asset.terminate_if_height_lower_than

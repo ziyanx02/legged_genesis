@@ -36,6 +36,9 @@ class GO2RoughCfg( LeggedRobotCfg ):
         foot_name = "foot"
         penalize_contacts_on = ["thigh", "calf"]
         terminate_after_contacts_on = ["base"]
+        terminate_if_height_lower_than = 0.2
+        terminate_if_roll_greater_than = 0.6
+        terminate_if_pitch_greater_than = 0.6
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
   
     class rewards( LeggedRobotCfg.rewards ):
