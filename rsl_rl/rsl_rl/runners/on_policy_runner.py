@@ -107,7 +107,7 @@ class OnPolicyRunner:
             # Rollout
             with torch.inference_mode():
                 for i in range(self.num_steps_per_env):
-                    actions = self.alg.act(obs, critic_obs)
+                    actions = self.alg.act(obs, critic_obs) * 0
                     obs, privileged_obs, rewards, dones, infos = self.env.step(actions)
                     critic_obs = privileged_obs if privileged_obs is not None else obs
                     obs, critic_obs, rewards, dones = obs.to(self.device), critic_obs.to(self.device), rewards.to(self.device), dones.to(self.device)
@@ -142,17 +142,17 @@ class OnPolicyRunner:
             if it < 2500:
                 if it % self.save_interval == 0:
                     self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(it)))
-                if it % self.record_interval == 0:
+                if it % self.record_interval == 0 and self.record_interval > 0:
                     self.start_recording()
             elif it < 5000:
                 if it % (2*self.save_interval) == 0:
                     self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(it)))
-                if it % (2*self.record_interval) == 0:
+                if it % (2*self.record_interval) == 0 and self.record_interval > 0:
                     self.start_recording()
             else:
                 if it % (5*self.save_interval) == 0:
                     self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(it)))
-                if it % (3*self.record_interval) == 0:
+                if it % (3*self.record_interval) == 0 and self.record_interval > 0:
                     self.start_recording()
             ep_infos.clear()
         

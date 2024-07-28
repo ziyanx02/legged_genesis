@@ -33,11 +33,10 @@ import copy
 import torch
 import numpy as np
 import random
-# from isaacgym import gymapi
-# from isaacgym import gymutil
 import argparse
 
 from legged_gym import LEGGED_GYM_ROOT_DIR, LEGGED_GYM_ENVS_DIR
+from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
 
 def class_to_dict(obj) -> dict:
     if not  hasattr(obj,"__dict__"):
@@ -99,12 +98,16 @@ def get_load_path(root, load_run=-1, checkpoint=-1):
     load_path = os.path.join(root, model)
     return load_path
 
-def update_cfg_from_args(env_cfg, cfg_train, args):
+def update_cfg_from_args(env_cfg: LeggedRobotCfg, cfg_train: LeggedRobotCfgPPO, args):
     # seed
     if env_cfg is not None:
         # num envs
         if args.num_envs is not None:
             env_cfg.env.num_envs = args.num_envs
+        if args.num_rows is not None:
+            env_cfg.terrain.num_rows = args.num_rows
+        if args.num_cols is not None:
+            env_cfg.terrain.num_cols = args.num_cols
         if args.video_path is not None:
             env_cfg.viewer.video_path = args.video_path
     if cfg_train is not None:
@@ -121,6 +124,8 @@ def update_cfg_from_args(env_cfg, cfg_train, args):
             cfg_train.runner.run_name = args.run_name
         if args.checkpoint is not None:
             cfg_train.runner.checkpoint = args.checkpoint
+        if args.record_interval is not None:
+            cfg_train.runner.record_interval = args.record_interval
 
     return env_cfg, cfg_train
 
@@ -134,6 +139,8 @@ def get_args():
         {"name": "--run_name", "type": str,  "help": "Name of the run. Overrides config file if provided."},
         
         {"name": "--num_envs", "type": int, "help": "Number of environments to create. Overrides config file if provided."},
+        {"name": "--num_rows", "type": int, "help": "Number of subterrain rows to create. Overrides config file if provided."},
+        {"name": "--num_cols", "type": int, "help": "Number of subterrain columns to create. Overrides config file if provided."},
         {"name": "--seed", "type": int, "help": "Random seed. Overrides config file if provided."},
         {"name": "--max_iterations", "type": int, "help": "Maximum number of training iterations. Overrides config file if provided."},
         {"name": "--headless", "action": "store_true", "default": False, "help": "Force display off at all times"},
@@ -155,6 +162,7 @@ def get_args():
         {"name": "--checkpoint", "type": int,  "help": "Saved model checkpoint number. If -1: will load the last checkpoint. Overrides config file if provided."},
         
         {"name": "--video_path", "type": str, "default": "./output.mp4", "help": "Record video path"},
+        {"name": "--record_interval", "type": int, "help": "Record video interval"},
     ]
 
     # parse arguments

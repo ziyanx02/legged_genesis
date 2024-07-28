@@ -55,6 +55,9 @@ def train(args):
     if args.debug:
         args.headless = False
         args.num_envs = 1
+        args.num_rows = 1
+        args.num_cols = 1
+        args.record_interval = -1
         mode = "disabled"
     wandb.login(key="1d5fe5b941feff91e5dbb834d4f687fdbec8e516")
     args.entity = "ziyanx02"

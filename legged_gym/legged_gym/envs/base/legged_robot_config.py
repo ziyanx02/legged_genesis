@@ -33,7 +33,7 @@ from .base_config import BaseConfig
 class LeggedRobotCfg(BaseConfig):
     class env:
         num_envs = 4096
-        num_observations = 235
+        num_observations = 48
         num_privileged_obs = None # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise 
         num_actions = 12
         env_spacing = 3.  # not used with heightfields/trimeshes 
@@ -56,8 +56,8 @@ class LeggedRobotCfg(BaseConfig):
         # selected = False # select a unique terrain type and pass all arguments
         terrain_kwargs = None # Dict of arguments for selected terrain
         # max_init_terrain_level = 5 # starting curriculum state
-        terrain_length = 8.
-        terrain_width = 8.
+        terrain_length = 20.
+        terrain_width = 20.
         num_rows= 1 # number of terrain rows (levels)
         num_cols = 1 # number of terrain cols (types)
         # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
@@ -177,8 +177,8 @@ class LeggedRobotCfg(BaseConfig):
 
     # viewer camera:
     class viewer:
-        pos = [0., 0., 5.]  # [m]
-        lookat = [5., 5., 0.]  # [m]
+        pos = [5., 5., 5.]  # [m]
+        lookat = [10., 10., 1.]  # [m]
         fov = 40
         geom_type = 'visual' # ['visual', 'collision', 'collision_sdf']
         visualize_contact = False
