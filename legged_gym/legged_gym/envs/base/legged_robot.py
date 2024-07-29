@@ -302,9 +302,6 @@ class LeggedRobot(BaseTask):
                 upper_bound=(1.1, 1.1, 1.1),
                 grid_density=64,
             ),
-            vis_options=gs.options.VisOptions(
-                geom_type=self.cfg.viewer.geom_type,
-            ),
             show_FPS=False,
         )
         self._create_terrain()
@@ -691,7 +688,10 @@ class LeggedRobot(BaseTask):
             material=gs.materials.Rigid(
                 friction=1.0,
             ),
-            visualize_contact=self.cfg.viewer.visualize_contact
+            surface=gs.surfaces.Default(
+                vis_mode=self.cfg.viewer.geom_type
+            ),
+            visualize_contact=self.cfg.viewer.visualize_contact,
         )
 
         self.num_body = len(self.robot.links)
