@@ -809,7 +809,7 @@ class LeggedRobot(BaseTask):
             cols = 0.5 + torch.arange(0, self.cfg.terrain.num_cols, 1, device="cuda", requires_grad=False).unsqueeze(0).repeat(self.cfg.terrain.num_rows, 1).unsqueeze(-1)
 
             xys = torch.cat([rows * self.cfg.terrain.terrain_length, cols * self.cfg.terrain.terrain_width], dim=1).reshape(-1, 2)
-            self.height_field_raw = torch.tensor(self.terrain.metadata["height_field"], device=self.device, requires_grad=False)
+            self.height_field_raw = torch.tensor(self.terrain.geoms[0].metadata["height_field"], device=self.device, requires_grad=False)
             xy_indices = torch.ceil(xys / self.horizontal_scale).to(torch.long)
             zs = self.height_field_raw[xy_indices[:, 0], xy_indices[:, 1]].unsqueeze(-1) * self.vertical_scale
             
