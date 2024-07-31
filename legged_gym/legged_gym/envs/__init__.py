@@ -34,6 +34,8 @@ from .a1.a1_config import A1Cfg, A1CfgPPO
 from .go2.go2_config import GO2Cfg, GO2CfgPPO
 from .h1.h1 import H1
 from .h1.h1_config import H1Cfg, H1CfgPPO
+from .wtw.legged_robot import LeggedRobotWTW
+from .wtw.legged_robot_config import LeggedRobotCfgWTW, LeggedRobotCfgPPOWTW
 
 
 import os
@@ -42,4 +44,5 @@ from legged_gym.utils.task_registry import task_registry
 
 task_registry.register( "a1", LeggedRobot, A1Cfg(), A1CfgPPO() )
 task_registry.register( "go2", LeggedRobot, GO2Cfg(), GO2CfgPPO() )
+task_registry.register( "go2_wtw", LeggedRobotWTW, LeggedRobotCfgWTW(), LeggedRobotCfgPPOWTW() )
 task_registry.register( "h1", H1, H1Cfg(), H1CfgPPO() )

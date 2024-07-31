@@ -166,3 +166,8 @@ def get_euler_xyz(q):
     yaw = torch.atan2(siny_cosp, cosy_cosp)
 
     return torch.stack((roll, pitch, yaw), dim=-1)
+
+def get_scale_shift(range):
+    scale = 2. / (range[1] - range[0])
+    shift = (range[1] + range[0]) / 2.
+    return scale, shift

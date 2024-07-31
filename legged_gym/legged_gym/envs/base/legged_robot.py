@@ -120,7 +120,7 @@ class LeggedRobot(BaseTask):
         self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
         # step physics and render each frame
 
-        for dec in range(self.cfg.control.decimation):
+        for _ in range(self.cfg.control.decimation):
             self.torques = self._compute_torques(self.actions).view(self.torques.shape)
             self.robot.control_dofs_force(self.torques, dofs_idx_local=self.dofs_idx_local_full)            
             self.scene.step()
@@ -139,9 +139,6 @@ class LeggedRobot(BaseTask):
             calls self._post_physics_step_callback() for common computations 
             calls self._draw_debug_vis() if needed
         """
-        # self.gym.refresh_actor_root_state_tensor(self.sim)
-        # self.gym.refresh_net_contact_force_tensor(self.sim)
-
         self.episode_length_buf += 1
         self.common_step_counter += 1
 

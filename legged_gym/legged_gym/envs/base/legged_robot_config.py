@@ -181,7 +181,7 @@ class LeggedRobotCfg(BaseConfig):
         pos = [-5., -5., 5.]  # [m]
         lookat = [0., 0., 1.]  # [m]
         fov = 40
-        geom_type = 'collision_sdf' # ['visual', 'collision', 'collision_sdf']
+        geom_type = 'visual' # ['visual', 'collision', 'collision_sdf']
         visualize_contact = False
         debug = False
     
