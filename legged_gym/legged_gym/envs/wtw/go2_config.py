@@ -1,6 +1,6 @@
 from legged_gym.envs.wtw.legged_robot_config import LeggedRobotCfgWTW, LeggedRobotCfgPPOWTW
 
-class GO2Cfg( LeggedRobotCfgWTW ):
+class GO2CfgWTW( LeggedRobotCfgWTW ):
     class init_state( LeggedRobotCfgWTW.init_state ):
         pos = [0.0, 0.0, 0.42] # x,y,z [m]
         default_joint_angles = { # = target angles [rad] when action = 0.0
@@ -38,15 +38,7 @@ class GO2Cfg( LeggedRobotCfgWTW ):
         penalize_contacts_on = ["thigh"]
         terminate_after_contacts_on = ["base"]
   
-    class rewards( LeggedRobotCfgWTW.rewards ):
-        soft_dof_pos_limit = 0.9
-        base_height_target = 0.27
-        class scales( LeggedRobotCfgWTW.rewards.scales ):
-            torques = -0.0002
-            dof_pos_limits = -10.0
-            base_height = -100.0
-
-class GO2CfgPPO( LeggedRobotCfgPPOWTW ):
+class GO2CfgPPOWTW( LeggedRobotCfgPPOWTW ):
     class algorithm( LeggedRobotCfgPPOWTW.algorithm ):
         entropy_coef = 0.01
     class runner( LeggedRobotCfgPPOWTW.runner ):

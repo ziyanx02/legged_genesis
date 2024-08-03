@@ -672,10 +672,6 @@ class LeggedRobot(BaseTask):
         base_init_state_list = self.cfg.init_state.pos + self.cfg.init_state.quat + self.cfg.init_state.lin_vel + self.cfg.init_state.ang_vel
         self.base_init_state = torch.tensor(base_init_state_list, device=self.device, requires_grad=False)
 
-        # TODO: prepare friction randomization
-        # TODO: prepare kv & kp or stiffness & damping randomization
-        # TODO: prepare mass randomization
-
         self.robot = self.scene.add_entity(
             gs.morphs.URDF(
                 file = asset_path,
@@ -690,6 +686,13 @@ class LeggedRobot(BaseTask):
             ),
             visualize_contact=self.cfg.viewer.visualize_contact,
         )
+
+        # TODO: prepare friction randomization
+        # TODO: prepare kv & kp or stiffness & damping randomization
+        # TODO: prepare mass randomization
+
+        self.default_friction = 0
+        self.default_restitution = 0
 
         self.num_body = len(self.robot.links)
         self.num_dof = len(self.robot.joints) - 1 # remove joint_base

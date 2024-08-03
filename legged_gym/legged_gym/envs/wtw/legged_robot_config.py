@@ -32,10 +32,13 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 
 class LeggedRobotCfgWTW(LeggedRobotCfg):
     class env:
-        num_envs = 4096
-        num_observations = 48
-        num_privileged_obs = None # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise 
+        num_envs = 4096 
+        num_observations = 70
+        num_scalar_observations = 70
+        num_privileged_obs = 2 # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise 
+        privileged_future_horizon = 1
         num_actions = 12
+        num_observation_history = 30
         env_spacing = 3.  # not used with heightfields/trimeshes 
         send_timeouts = True # send time out information to the algorithm
         episode_length_s = 20 # episode length in seconds
@@ -47,24 +50,24 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         observe_contact_states = False
         observe_command = True
         observe_height_command = False
-        observe_gait_commands = False
+        observe_gait_commands = True
         observe_timing_parameter = False
-        observe_clock_inputs = False
-        observe_two_prev_actions = False
+        observe_clock_inputs = True
+        observe_two_prev_actions = True
         observe_imu = False
 
         priv_observe_friction = True
-        priv_observe_friction_indep = True
+        priv_observe_friction_indep = False
         priv_observe_ground_friction = False
         priv_observe_ground_friction_per_foot = False
         priv_observe_restitution = True
-        priv_observe_base_mass = True
-        priv_observe_com_displacement = True
+        priv_observe_base_mass = False
+        priv_observe_com_displacement = False
         priv_observe_motor_strength = False
         priv_observe_motor_offset = False
         priv_observe_joint_friction = True
-        priv_observe_Kp_factor = True
-        priv_observe_Kd_factor = True
+        priv_observe_Kp_factor = False
+        priv_observe_Kd_factor = False
         priv_observe_contact_forces = False
         priv_observe_contact_states = False
         priv_observe_body_velocity = False
@@ -104,16 +107,95 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         # slope_treshold = 0.75 # slopes above this threshold will be corrected to vertical surfaces
 
     class commands:
-        curriculum = False
-        max_curriculum = 1.
-        num_commands = 4 # default: lin_vel_x, lin_vel_y, ang_vel_yaw, heading (in heading mode ang_vel_yaw is recomputed from heading error)
-        resampling_time = 10. # time before command are changed[s]
-        heading_command = True # if true: compute ang vel command from heading error
-        class ranges:
-            lin_vel_x = [-1.0, 1.0] # min max [m/s]
-            lin_vel_y = [-1.0, 1.0]   # min max [m/s]
-            ang_vel_yaw = [-1, 1]    # min max [rad/s]
-            heading = [-3.14, 3.14]
+
+        command_curriculum = True
+        max_reverse_curriculum = 1.
+        max_forward_curriculum = 1.
+        yaw_command_curriculum = False
+        max_yaw_curriculum = 1.
+        exclusive_command_sampling = False
+        num_commands = 15
+        resampling_time = 10.  # time before command are changed[s]
+        subsample_gait = False
+        gait_interval_s = 10.  # time between resampling gait params
+        vel_interval_s = 10.
+        jump_interval_s = 20.  # time between jumps
+        jump_duration_s = 0.1  # duration of jump
+        jump_height = 0.3
+        heading_command = False  # if true: compute ang vel command from heading error
+        global_reference = False
+        observe_accel = False
+        distributional_commands = True
+        curriculum_type = "RewardThresholdCurriculum"
+        lipschitz_threshold = 0.9
+
+        num_lin_vel_bins = 30
+        lin_vel_step = 0.3
+        num_ang_vel_bins = 30
+        ang_vel_step = 0.3
+        distribution_update_extension_distance = 1
+        curriculum_seed = 100
+
+        lin_vel_x = [-0.6, 0.6]
+        lin_vel_y = [-0.6, 0.6]
+        ang_vel_yaw = [-1.0, 1.0]
+        body_height_cmd = [-0.25, 0.15]
+        impulse_height_commands = False
+
+        limit_vel_x = [-5.0, 5.0]
+        limit_vel_y = [-0.6, 0.6]
+        limit_vel_yaw = [-5.0, 5.0]
+        limit_body_height = [-0.25, 0.15]
+        limit_gait_phase = [0.0, 1.0]
+        limit_gait_offset = [0.0, 1.0]
+        limit_gait_bound = [0.0, 1.0]
+        limit_gait_duration = [0.5, 0.5]
+        limit_gait_frequency = [2.0, 4.0]
+        limit_footswing_height = [0.03, 0.35]
+        limit_body_pitch = [-0.4, 0.4]
+        limit_body_roll = [-0.0, 0.0]
+        limit_aux_reward_coef = [0.0, 0.01]
+        limit_compliance = [0.0, 0.01]
+        limit_stance_width = [0.10, 0.45]
+        limit_stance_length = [0.35, 0.45]
+
+        num_bins_vel_x = 21
+        num_bins_vel_y = 1
+        num_bins_vel_yaw = 21
+        num_bins_body_height = 1
+        num_bins_gait_frequency = 1
+        num_bins_gait_phase = 1
+        num_bins_gait_offset = 1
+        num_bins_gait_bound = 1
+        num_bins_gait_duration = 1
+        num_bins_footswing_height = 1
+        num_bins_body_roll = 1
+        num_bins_body_pitch = 1
+        num_bins_stance_width = 1
+        num_bins_stance_length = 1
+        num_bins_aux_reward_coef = 1
+        num_bins_compliance = 1
+        num_bins_compliance = 1
+
+        heading = [-3.14, 3.14]
+
+        gait_phase_cmd_range = [0.0, 1.0]
+        gait_offset_cmd_range = [0.0, 1.0]
+        gait_bound_cmd_range = [0.0, 1.0]
+        gait_frequency_cmd_range = [2.0, 4.0]
+        gait_duration_cmd_range = [0.5, 0.5]
+        footswing_height_range = [0.03, 0.35]
+        body_pitch_range = [-0.4, 0.4]
+        body_roll_range = [-0.0, 0.0]
+        stance_width_range = [0.10, 0.45]
+        stance_length_range = [0.35, 0.45]
+        aux_reward_coef_range = [0.0, 0.01]
+
+        exclusive_phase_offset = False
+        binary_phases = True
+        pacing_offset = False
+        balance_gait_distribution = True
+        gaitwise_curricula = True
 
     class init_state:
         pos = [0.0, 0.0, 1.] # x,y,z [m]
@@ -160,72 +242,171 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         thickness = 0.01
 
     class domain_rand:
+        rand_interval_s = 10
+        randomize_rigids_after_start = True
         randomize_friction = True
-        friction_range = [0.5, 1.25]
+        friction_range = [0.5, 1.25]  # increase range
+        randomize_restitution = False
+        restitution_range = [0, 1.0]
         randomize_base_mass = False
-        randomize_lag_timesteps = True
-        rand_interval_s = 6
+        # add link masses, increase range, randomize inertia, randomize joint properties
         added_mass_range = [-1., 1.]
-        push_robots = False
+        randomize_com_displacement = False
+        # add link masses, increase range, randomize inertia, randomize joint properties
+        com_displacement_range = [-0.15, 0.15]
+        randomize_motor_strength = False
+        motor_strength_range = [0.9, 1.1]
+        randomize_Kp_factor = False
+        Kp_factor_range = [0.8, 1.3]
+        randomize_Kd_factor = False
+        Kd_factor_range = [0.5, 1.5]
+        gravity_rand_interval_s = 7
+        gravity_impulse_duration = 1.0
+        randomize_gravity = False
+        gravity_range = [-1.0, 1.0]
+        push_robots = True
         push_interval_s = 15
         max_push_vel_xy = 1.
+        randomize_lag_timesteps = True
+        lag_timesteps = 6
 
+    class curriculum_thresholds:
+        tracking_lin_vel = 0.8  # closer to 1 is tighter
+        tracking_ang_vel = 0.7
+        tracking_contacts_shaped_force = 0.9  # closer to 1 is tighter
+        tracking_contacts_shaped_vel = 0.9
+    
     class rewards:
-        class scales:
-            termination = -0.0
-            tracking_lin_vel = 1.0
-            tracking_ang_vel = 0.5
-            lin_vel_z = -2.0
-            ang_vel_xy = -0.05
-            orientation = -0.
-            torques = -0.00001
-            dof_vel = -0.
-            dof_acc = -2.5e-7
-            base_height = -0. 
-            feet_air_time =  1.0
-            collision = -1.
-            feet_stumble = -0.0 
-            action_rate = -0.01
-            stand_still = -0.
-
-        only_positive_rewards = False # if true negative total rewards are clipped at zero (avoids early termination problems)
+        only_positive_rewards = False  # if true negative total rewards are clipped at zero (avoids early termination problems)
         only_positive_rewards_ji22_style = True
-        tracking_sigma = 0.25 # tracking reward = exp(-error^2/sigma)
-        soft_dof_pos_limit = 1. # percentage of urdf limits, values above this limit are penalized
+        sigma_rew_neg = 0.02
+        reward_container_name = "WTWRewards"
+        tracking_sigma = 0.25  # tracking reward = exp(-error^2/sigma)
+        tracking_sigma_lat = 0.25  # tracking reward = exp(-error^2/sigma)
+        tracking_sigma_long = 0.25  # tracking reward = exp(-error^2/sigma)
+        tracking_sigma_yaw = 0.25  # tracking reward = exp(-error^2/sigma)
+        soft_dof_pos_limit = 0.9  # percentage of urdf limits, values above this limit are penalized
         soft_dof_vel_limit = 1.
         soft_torque_limit = 1.
-        base_height_target = 1.
-        max_contact_force = 100. # forces above this value are penalized
-
+        base_height_target = 0.30
+        max_contact_force = 100.  # forces above this value are penalized
+        use_terminal_body_height = False
+        terminal_body_height = 0.20
+        use_terminal_foot_height = False
+        terminal_foot_height = -0.005
+        use_terminal_roll_pitch = False
+        terminal_body_ori = 0.5
         kappa_gait_probs = 0.07
+        gait_force_sigma = 100.
+        gait_vel_sigma = 10.
+        footswing_height = 0.09
+
+    class reward_scales:
+        termination = -0.0
+        tracking_lin_vel = 1.0
+        tracking_ang_vel = 0.5
+        lin_vel_z = -0.02
+        ang_vel_xy = -0.001
+        orientation = 0.
+        orientation_control = -5.0
+        torques = -0.0001
+        dof_vel = -1e-4
+        dof_acc = -2.5e-7
+        base_height = 0.
+        feet_air_time = 0.0
+        collision = -5.
+        feet_stumble = -0.0
+        action_rate = -0.01
+        stand_still = -0.
+        tracking_lin_vel_lat = 0.
+        tracking_lin_vel_long = 0.
+        tracking_contacts = 0.
+        tracking_contacts_shaped = 0.
+        tracking_contacts_shaped_force = 4.
+        tracking_contacts_shaped_vel = 4.
+        jump = 10.0
+        energy = 0.0
+        energy_expenditure = 0.0
+        survival = 0.0
+        dof_pos_limits = -10.
+        feet_contact_forces = 0.
+        feet_slip = -0.04
+        feet_clearance_cmd_linear = -30.
+        dof_pos = 0.
+        action_smoothness_1 = -0.1
+        action_smoothness_2 = -0.1
+        base_motion = 0.
+        feet_impact_vel = 0.0
+        raibert_heuristic = -10.0
 
     class normalization:
-        class obs_scales:
-            lin_vel = 2.0
-            ang_vel = 0.25
-            dof_pos = 1.0
-            dof_vel = 0.05
-            height_measurements = 5.0
         clip_observations = 100.
-        clip_actions = 100.
+        clip_actions = 10.
+
+        friction_range = [0, 1]
+        ground_friction_range = [0, 1]
+        restitution_range = [0, 1.0]
+        added_mass_range = [-1., 3.]
+        com_displacement_range = [-0.1, 0.1]
+        motor_strength_range = [0.9, 1.1]
+        motor_offset_range = [-0.05, 0.05]
+        Kp_factor_range = [0.8, 1.3]
+        Kd_factor_range = [0.5, 1.5]
+        joint_friction_range = [0.0, 0.7]
+        contact_force_range = [0.0, 50.0]
+        contact_state_range = [0.0, 1.0]
+        body_velocity_range = [-6.0, 6.0]
+        foot_height_range = [0.0, 0.15]
+        body_height_range = [0.0, 0.60]
+        gravity_range = [-1.0, 1.0]
+        motion = [-0.01, 0.01]
+
+    class obs_scales:
+        lin_vel = 2.0
+        ang_vel = 0.25
+        dof_pos = 1.0
+        dof_vel = 0.05
+        imu = 0.1
+        height_measurements = 5.0
+        friction_measurements = 1.0
+        body_height_cmd = 2.0
+        gait_phase_cmd = 1.0
+        gait_freq_cmd = 1.0
+        footswing_height_cmd = 0.15
+        body_pitch_cmd = 0.3
+        body_roll_cmd = 0.3
+        aux_reward_cmd = 1.0
+        compliance_cmd = 1.0
+        stance_width_cmd = 1.0
+        stance_length_cmd = 1.0
+        segmentation_image = 1.0
+        rgb_image = 1.0
+        depth_image = 1.0
 
     class noise:
         add_noise = True
-        noise_level = 1.0 # scales other values
-        class noise_scales:
-            dof_pos = 0.01
-            dof_vel = 1.5
-            lin_vel = 0.1
-            ang_vel = 0.2
-            gravity = 0.05
-            height_measurements = 0.1
+        noise_level = 1.0  # scales other values
+
+    class noise_scales:
+        dof_pos = 0.01
+        dof_vel = 1.5
+        lin_vel = 0.1
+        ang_vel = 0.2
+        imu = 0.1
+        gravity = 0.05
+        contact_states = 0.05
+        height_measurements = 0.1
+        friction_measurements = 0.0
+        segmentation_image = 0.0
+        rgb_image = 0.0
+        depth_image = 0.0
 
     # viewer camera:
     class viewer:
         pos = [-5., -5., 5.]  # [m]
         lookat = [0., 0., 1.]  # [m]
         fov = 40
-        geom_type = 'collision_sdf' # ['visual', 'collision', 'collision_sdf']
+        geom_type = 'visual' # ['visual', 'collision', 'collision_sdf']
         visualize_contact = False
         debug = False
     
@@ -239,19 +420,6 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         substeps = 1
         gravity = [0., 0. ,-9.81]  # [m/s^2]
         up_axis = 1  # 0 is y, 1 is z
-
-        # class physx:
-        #     num_threads = 10
-        #     solver_type = 1  # 0: pgs, 1: tgs
-        #     num_position_iterations = 4
-        #     num_velocity_iterations = 0
-        #     contact_offset = 0.01  # [m]
-        #     rest_offset = 0.0   # [m]
-        #     bounce_threshold_velocity = 0.5 #0.5 [m/s]
-        #     max_depenetration_velocity = 1.0
-        #     max_gpu_contact_pairs = 2**23 #2**24 -> needed for 8000 envs and more
-        #     default_buffer_size_multiplier = 5
-        #     contact_collection = 2 # 0: never, 1: last sub-step, 2: all sub-steps (default=2)
 
 class LeggedRobotCfgPPOWTW(LeggedRobotCfgPPO):
     seed = 1
