@@ -91,13 +91,13 @@ class WTWRewards:
 
     def _reward_action_smoothness_1(self):
         # Penalize changes in actions
-        diff = torch.square(self.env.joint_pos_target[:, :self.env.num_actuated_dof] - self.env.last_joint_pos_target[:, :self.env.num_actuated_dof])
+        diff = torch.square(self.env.joint_pos_target[:, :self.env.num_actions] - self.env.last_joint_pos_target[:, :self.env.num_actions])
         diff = diff * (self.env.last_actions[:, :self.env.num_dof] != 0)  # ignore first step
         return torch.sum(diff, dim=1)
 
     def _reward_action_smoothness_2(self):
         # Penalize changes in actions
-        diff = torch.square(self.env.joint_pos_target[:, :self.env.num_actuated_dof] - 2 * self.env.last_joint_pos_target[:, :self.env.num_actuated_dof] + self.env.last_last_joint_pos_target[:, :self.env.num_actuated_dof])
+        diff = torch.square(self.env.joint_pos_target[:, :self.env.num_actions] - 2 * self.env.last_joint_pos_target[:, :self.env.num_actions] + self.env.last_last_joint_pos_target[:, :self.env.num_actions])
         diff = diff * (self.env.last_actions[:, :self.env.num_dof] != 0)  # ignore first step
         diff = diff * (self.env.last_last_actions[:, :self.env.num_dof] != 0)  # ignore second step
         return torch.sum(diff, dim=1)

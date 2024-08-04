@@ -929,8 +929,8 @@ class LeggedRobotWTW(LeggedRobot):
     def _parse_cfg(self, cfg):
         self.dt = self.cfg.control.decimation * self.cfg.sim.dt
         self.obs_scales = self.cfg.obs_scales
-        self.reward_scales = vars(self.cfg.reward_scales)
-        self.command_ranges = vars(self.cfg.commands)
-        self.curriculum_thresholds = vars(self.cfg.commands)
+        self.reward_scales = class_to_dict(self.cfg.reward_scales)
+        self.command_ranges = class_to_dict(self.cfg.commands)
+        self.curriculum_thresholds = class_to_dict(self.cfg.curriculum_thresholds)
         self.max_episode_length_s = self.cfg.env.episode_length_s
         self.max_episode_length = np.ceil(self.max_episode_length_s / self.dt)
