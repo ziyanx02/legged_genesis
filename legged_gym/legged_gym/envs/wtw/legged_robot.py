@@ -11,7 +11,7 @@ from legged_gym.utils.math import *
 from legged_gym.utils.helpers import class_to_dict
 
 class LeggedRobotWTW(LeggedRobot):
-    def __init__(self, cfg: LeggedRobotCfgWTW, sim_params, sim_device, headless):
+    def __init__(self, cfg: LeggedRobotCfgWTW, sim_params, sim_device, headless, record):
         """ Parses the provided config file,
             calls create_sim() (which creates, simulation, terrain and environments),
             initilizes pytorch buffers used during training
@@ -24,7 +24,7 @@ class LeggedRobotWTW(LeggedRobot):
             device_id (int): 0, 1, ...
             headless (bool): Run without rendering if True
         """
-        super().__init__(cfg, sim_params, sim_device, headless)
+        super().__init__(cfg, sim_params, sim_device, headless, record)
 
         self.cfg = cfg
         self.rew_buf_pos = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)

@@ -39,6 +39,7 @@ from torch import Tensor
 from typing import Tuple, Dict
 
 import genesis as gs
+from genesis.engine.solvers.rigid.rigid_solver_decomp import RigidSolver
 
 from legged_gym import LEGGED_GYM_ROOT_DIR
 from legged_gym.envs.base.base_task import BaseTask
@@ -53,7 +54,7 @@ import matplotlib.pyplot as plt
 from moviepy.editor import ImageSequenceClip
 
 class LeggedRobot(BaseTask):
-    def __init__(self, cfg: LeggedRobotCfg, sim_params, sim_device, headless):
+    def __init__(self, cfg: LeggedRobotCfg, sim_params, sim_device, headless, record):
         """ Parses the provided config file,
             calls create_sim() (which creates, simulation, terrain and environments),
             initilizes pytorch buffers used during training
@@ -71,7 +72,7 @@ class LeggedRobot(BaseTask):
         self.debug_viz = False
         self.init_done = False
         self._parse_cfg(self.cfg)
-        super().__init__(self.cfg, sim_params, sim_device, headless)
+        super().__init__(self.cfg, sim_params, sim_device, headless, record)
 
         self._init_buffers()
         self._prepare_reward_function()
@@ -97,18 +98,21 @@ class LeggedRobot(BaseTask):
         self._recorded_frames = []
         self._recording = True
         
-    def render(self, img_path=None, sync_frame_time=True):
+    def render(self, img_path=None):
 
-        img_np, _, _ = self.camera.render(rgb=True, depth=True, segmentation=True) # type: np.ndarray    
-        img = Image.fromarray(img_np)
-        self.images.append(img_np)
-        
-        if len(self.images) % 200 == 0:
-            # self.images[0].save('./videos/view.gif', 'GIF', append_images=self.images[1:], save_all=True, duration=200, loop=0)
-            clip = ImageSequenceClip(self.images, fps=50)
-            clip.write_videofile(self.cfg.viewer.video_path, codec='libx264')
+        if self.record:
+            img_np, _, _ = self.camera.render(rgb=True, depth=True, segmentation=True) # type: np.ndarray
 
-        if img_path is not None: img.save(img_path)
+            img = Image.fromarray(img_np)
+            self.images.append(img_np)
+            
+            if len(self.images) % 200 == 0:
+                # self.images[0].save('./videos/view.gif', 'GIF', append_images=self.images[1:], save_all=True, duration=200, loop=0)
+                clip = ImageSequenceClip(self.images, fps=50)
+                clip.write_videofile(self.cfg.viewer.video_path, codec='libx264')
+
+            if img_path is not None:
+                img.save(img_path)
 
     def step(self, actions):
         """ Apply actions, simulate, call self.post_physics_step()
@@ -160,6 +164,7 @@ class LeggedRobot(BaseTask):
         if self.cfg.viewer.debug:
             self._draw_debug_vis()
         
+        # self.render()
         self._render_headless()
 
     def check_termination(self):
@@ -310,11 +315,59 @@ class LeggedRobot(BaseTask):
 
         self.scene.build(n_envs=self.num_envs)
 
+        if self.cfg.domain_rand.randomize_friction:
+            self._randomize_link_friction()
+        if self.cfg.domain_rand.randomize_base_mass:
+            self._randomize_base_mass()
+
         self._get_env_origins()
 
         # TODO: apply randomizations initialized in self._create_robot()
 
     #------------- Callbacks --------------
+    def _randomize_link_friction(self):
+
+        min_friction, max_friction = self.cfg.domain_rand.friction_range
+
+        for solver in self.scene.sim.solvers:
+            if not isinstance(solver, RigidSolver):
+                continue
+            
+            ratios = torch.rand(self.num_envs, solver.n_geoms, dtype=torch.float, device=self.device, requires_grad=False) \
+                     * (max_friction - min_friction) + min_friction
+            solver.adjust_geoms_friction(ratios, torch.arange(0, solver.n_geoms), torch.arange(0, self.num_envs))
+
+    def _randomize_base_mass(self):
+
+        min_mass, max_mass = self.cfg.domain_rand.added_mass_range
+        if self.cfg.terrain.terrain_type == "plane":
+            base_link_id = 1 # o is planeLink
+        else:
+            raise NotImplementedError
+
+        for solver in self.scene.sim.solvers:
+            if not isinstance(solver, RigidSolver):
+                continue
+
+            base_mass = solver.get_links_mass([base_link_id,], [0,])[0]
+            added_mass = torch.rand(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False) \
+                         * (max_mass - min_mass) + min_mass
+
+            solver.set_links_mass(added_mass + base_mass, [base_link_id,], torch.arange(0, self.num_envs))
+
+    def _randomize_link_inertia(self):
+        raise NotImplementedError
+
+        min_friction, max_friction = self.cfg.domain_rand.friction_range
+
+        for solver in self.scene.sim.solvers:
+            if not isinstance(solver, RigidSolver):
+                continue
+
+            ratios = torch.rand(self.num_envs, solver.n_links, dtype=torch.float, device=self.device, requires_grad=False) \
+                     * (max_friction - min_friction) + min_friction
+            solver.adjust_links_inertia(ratios, torch.arange(0, solver.n_links), torch.arange(0, self.num_envs))
+
     def _process_rigid_shape_props(self, props, env_id):
         """ Callback allowing to store/change/randomize the rigid shape properties of each environment.
             Called During environment creation.
@@ -819,8 +872,8 @@ class LeggedRobot(BaseTask):
         """ Set camera position and direction
         """
         self.camera = self.scene.add_camera(
-            pos=(self.cfg.viewer.pos[0], self.cfg.viewer.pos[1], self.cfg.viewer.pos[2]),
-            lookat=(self.cfg.viewer.lookat[0], self.cfg.viewer.lookat[1], self.cfg.viewer.lookat[2]),
+            pos=self.cfg.viewer.pos,
+            lookat=self.cfg.viewer.lookat,
             # res=(500, 500),
             fov=self.cfg.viewer.fov,
             GUI=False,

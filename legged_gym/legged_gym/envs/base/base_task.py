@@ -37,7 +37,7 @@ from .legged_robot_config import LeggedRobotCfg
 # Base class for RL tasks
 class BaseTask():
 
-    def __init__(self, cfg: LeggedRobotCfg, sim_params, sim_device: str, headless):
+    def __init__(self, cfg: LeggedRobotCfg, sim_params, sim_device: str, headless, record):
 
         self.sim_params = sim_params
         self.sim_device = sim_device
@@ -46,6 +46,7 @@ class BaseTask():
         else:
             sim_device_type, self.sim_device_id = sim_device, 0
         self.headless = headless
+        self.record = record
 
         self.device = self.sim_device
         self.device_gs = gs.cpu if "cpu" in self.device else gs.gpu
