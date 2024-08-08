@@ -349,7 +349,7 @@ class LeggedRobot(BaseTask):
             if not isinstance(solver, RigidSolver):
                 continue
 
-            base_mass = solver.get_links_mass([base_link_id,], [0,])[0]
+            base_mass = solver.get_links_mass([base_link_id,], torch.arange(0, self.num_envs))
             added_mass = torch.rand(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False) \
                          * (max_mass - min_mass) + min_mass
 

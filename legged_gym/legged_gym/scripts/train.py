@@ -54,7 +54,7 @@ def train(args):
         mode = "online"
     if args.debug:
         args.headless = False
-        args.num_envs = 1
+        args.num_envs = 2
         args.num_rows = 1
         args.num_cols = 1
         args.record_interval = -1
