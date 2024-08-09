@@ -82,8 +82,16 @@ class LeggedRobot(BaseTask):
         if self._recording and len(self._recorded_frames) < self.cfg.camera.num_upload_frames:
             robot_pos = np.array(self.root_states[0, :3].cpu())
             self._floating_camera.set_pose(pos=robot_pos + np.array(self.cfg.camera.pos), lookat=robot_pos)
+            # import time
+            # start = time.time()
             frame, _, _ = self._floating_camera.render()
+            # end = time.time()
+            # print(end-start)
             self._recorded_frames.append(frame)
+            # from PIL import Image
+            # img = Image.fromarray(np.uint8(frame))
+            # img.save("./test.png")
+            # print("save")
 
     def get_recorded_frames(self):
         if len(self._recorded_frames) == self.cfg.camera.num_upload_frames:
@@ -163,9 +171,9 @@ class LeggedRobot(BaseTask):
 
         if self.cfg.viewer.debug:
             self._draw_debug_vis()
-        
+
         # self.render()
-        self._render_headless()
+        # self._render_headless()
 
     def check_termination(self):
         """ Check if environments need to be reset
@@ -315,12 +323,12 @@ class LeggedRobot(BaseTask):
 
         self.scene.build(n_envs=self.num_envs)
 
-        if self.cfg.domain_rand.randomize_friction:
-            self._randomize_link_friction()
-        if self.cfg.domain_rand.randomize_base_mass:
-            self._randomize_base_mass()
-        if self.cfg.domain_rand.randomize_com_displacement:
-            self._randomize_com_displacement()
+        # if self.cfg.domain_rand.randomize_friction:
+        #     self._randomize_link_friction()
+        # if self.cfg.domain_rand.randomize_base_mass:
+        #     self._randomize_base_mass()
+        # if self.cfg.domain_rand.randomize_com_displacement:
+        #     self._randomize_com_displacement()
 
         self._get_env_origins()
 
