@@ -319,6 +319,8 @@ class LeggedRobot(BaseTask):
             self._randomize_link_friction()
         if self.cfg.domain_rand.randomize_base_mass:
             self._randomize_base_mass()
+        if self.cfg.domain_rand.randomize_com_displacement:
+            self._randomize_com_displacement()
 
         self._get_env_origins()
 
@@ -333,7 +335,7 @@ class LeggedRobot(BaseTask):
             if not isinstance(solver, RigidSolver):
                 continue
             
-            ratios = torch.rand(self.num_envs, solver.n_geoms, dtype=torch.float, device=self.device, requires_grad=False) \
+            ratios = torch.rand(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False).repeat(1, solver.n_geoms) \
                      * (max_friction - min_friction) + min_friction
             solver.adjust_geoms_friction(ratios, torch.arange(0, solver.n_geoms), torch.arange(0, self.num_envs))
 
@@ -354,6 +356,24 @@ class LeggedRobot(BaseTask):
                          * (max_mass - min_mass) + min_mass
 
             solver.set_links_mass(added_mass + base_mass, [base_link_id,], torch.arange(0, self.num_envs))
+
+    def _randomize_com_displacement(self):
+
+        min_displacement, max_displacement = self.cfg.domain_rand.com_displacement_range
+        if self.cfg.terrain.terrain_type == "plane":
+            base_link_id = 1 # o is planeLink
+        else:
+            raise NotImplementedError
+
+        for solver in self.scene.sim.solvers:
+            if not isinstance(solver, RigidSolver):
+                continue
+
+            base_com = solver.get_links_com([base_link_id,], torch.arange(0, self.num_envs))
+            com_displacement = torch.rand(self.num_envs, 1, 3, dtype=torch.float, device=self.device, requires_grad=False) \
+                         * (max_displacement - min_displacement) + min_displacement
+
+            solver.set_links_com(base_com + com_displacement, [base_link_id,], torch.arange(0, self.num_envs))
 
     def _randomize_link_inertia(self):
         raise NotImplementedError
