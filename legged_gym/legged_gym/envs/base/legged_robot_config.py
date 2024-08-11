@@ -132,7 +132,7 @@ class LeggedRobotCfg(BaseConfig):
         randomize_motor_offset = True
         motor_offset_range = [-0.02, 0.02]
         push_robots = True
-        push_interval_s = 15
+        push_interval_s = 10
         max_push_vel_xy = 1.
 
     class rewards:
