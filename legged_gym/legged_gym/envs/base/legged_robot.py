@@ -370,9 +370,13 @@ class LeggedRobot(BaseTask):
             if not isinstance(solver, RigidSolver):
                 continue
             
+            if not hasattr(self, "geom_friction"):
+                self.geom_friction = solver.get_geoms_friction(torch.arange(0, solver.n_geoms), [0,])
+
+            geom_friction = self.geom_friction.repeat(len(env_ids), 1)
             ratios = torch.rand(len(env_ids), 1, dtype=torch.float, device=self.device, requires_grad=False).repeat(1, solver.n_geoms) \
                      * (max_friction - min_friction) + min_friction
-            solver.adjust_geoms_friction(ratios, torch.arange(0, solver.n_geoms), env_ids)
+            solver.set_geoms_friction(geom_friction * ratios, torch.arange(0, solver.n_geoms), env_ids)
 
     def _randomize_base_mass(self, env_ids):
 
@@ -386,7 +390,10 @@ class LeggedRobot(BaseTask):
             if not isinstance(solver, RigidSolver):
                 continue
 
-            base_mass = solver.get_links_mass([base_link_id,], env_ids)
+            if not hasattr(self, "base_mass"):
+                self.base_mass = solver.get_links_mass([base_link_id,], [0,])
+
+            base_mass = self.base_mass.repeat(len(env_ids), 1)
             added_mass = torch.rand(len(env_ids), 1, dtype=torch.float, device=self.device, requires_grad=False) \
                          * (max_mass - min_mass) + min_mass
 
@@ -404,7 +411,10 @@ class LeggedRobot(BaseTask):
             if not isinstance(solver, RigidSolver):
                 continue
 
-            base_com = solver.get_links_com([base_link_id,], env_ids)
+            if not hasattr(self, "base_com"):
+                self.base_com = solver.get_links_com([base_link_id,], [0,])
+
+            base_com = self.base_com.repeat(len(env_ids), 1, 1)
             com_displacement = torch.rand(len(env_ids), 1, 3, dtype=torch.float, device=self.device, requires_grad=False) \
                                * (max_displacement - min_displacement) + min_displacement
 
