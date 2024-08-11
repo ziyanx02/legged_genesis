@@ -245,17 +245,19 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         rand_interval_s = 10
         randomize_rigids_after_start = True
         randomize_friction = True
-        friction_range = [0.5, 1.25]  # increase range
+        friction_range = [0.1, 3.0]  # increase range
         randomize_restitution = False
         restitution_range = [0, 1.0]
-        randomize_base_mass = False
+        randomize_base_mass = True
         # add link masses, increase range, randomize inertia, randomize joint properties
-        added_mass_range = [-1., 1.]
+        added_mass_range = [-1., 3.]
         randomize_com_displacement = False
         # add link masses, increase range, randomize inertia, randomize joint properties
         com_displacement_range = [-0.15, 0.15]
-        randomize_motor_strength = False
+        randomize_motor_strength = True
         motor_strength_range = [0.9, 1.1]
+        randomize_motor_offset = True
+        motor_offset_range = [-0.02, 0.02]
         randomize_Kp_factor = False
         Kp_factor_range = [0.8, 1.3]
         randomize_Kd_factor = False

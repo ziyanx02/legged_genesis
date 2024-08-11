@@ -132,6 +132,15 @@ class LeggedRobot(BaseTask):
         self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
         # step physics and render each frame
 
+        # for solver in self.scene.sim.solvers:
+        #     if not isinstance(solver, RigidSolver):
+        #         continue
+            
+        #     frictions = solver.get_links_mass([1,], torch.arange(0, self.num_envs))
+        #     print(frictions)
+        # import time
+        # time.sleep(0.5)
+
         for _ in range(self.cfg.control.decimation):
             self.torques = self._compute_torques(self.actions).view(self.torques.shape)
             self.robot.control_dofs_force(self.torques, dofs_idx_local=self.dofs_idx_local_full)            
@@ -173,7 +182,7 @@ class LeggedRobot(BaseTask):
             self._draw_debug_vis()
 
         # self.render()
-        # self._render_headless()
+        self._render_headless()
 
     def check_termination(self):
         """ Check if environments need to be reset
@@ -323,19 +332,32 @@ class LeggedRobot(BaseTask):
 
         self.scene.build(n_envs=self.num_envs)
 
-        # if self.cfg.domain_rand.randomize_friction:
-        #     self._randomize_link_friction()
-        # if self.cfg.domain_rand.randomize_base_mass:
-        #     self._randomize_base_mass()
-        # if self.cfg.domain_rand.randomize_com_displacement:
-        #     self._randomize_com_displacement()
+        if self.cfg.domain_rand.randomize_friction:
+            self._randomize_link_friction()
+        if self.cfg.domain_rand.randomize_base_mass:
+            self._randomize_base_mass()
+        if self.cfg.domain_rand.randomize_com_displacement:
+            self._randomize_com_displacement()
+
+        if cfg.domain_rand.randomize_motor_strength:
+            min_strength, max_strength = cfg.domain_rand.motor_strength_range
+            self.motor_strengths[env_ids, :] = torch.rand(len(env_ids), dtype=torch.float, device=self.device,
+                                                     requires_grad=False).unsqueeze(1) * (
+                                                  max_strength - min_strength) + min_strength
+        if cfg.domain_rand.randomize_motor_offset:
+            min_offset, max_offset = cfg.domain_rand.motor_offset_range
+            self.motor_offsets[env_ids, :] = torch.rand(len(env_ids), self.num_dof, dtype=torch.float,
+                                                        device=self.device, requires_grad=False) * (
+                                                     max_offset - min_offset) + min_offset
 
         self._get_env_origins()
 
         # TODO: apply randomizations initialized in self._create_robot()
 
     #------------- Callbacks --------------
-    def _randomize_link_friction(self):
+    def _randomize_link_friction(self, env_ids=None):
+        if env_ids == None:
+            env_ids = torch.arange(0, self.num_envs)
 
         min_friction, max_friction = self.cfg.domain_rand.friction_range
 
@@ -347,7 +369,9 @@ class LeggedRobot(BaseTask):
                      * (max_friction - min_friction) + min_friction
             solver.adjust_geoms_friction(ratios, torch.arange(0, solver.n_geoms), torch.arange(0, self.num_envs))
 
-    def _randomize_base_mass(self):
+    def _randomize_base_mass(self, env_ids=None):
+        if env_ids == None:
+            env_ids = torch.arange(0, self.num_envs)
 
         min_mass, max_mass = self.cfg.domain_rand.added_mass_range
         if self.cfg.terrain.terrain_type == "plane":
@@ -365,7 +389,9 @@ class LeggedRobot(BaseTask):
 
             solver.set_links_mass(added_mass + base_mass, [base_link_id,], torch.arange(0, self.num_envs))
 
-    def _randomize_com_displacement(self):
+    def _randomize_com_displacement(self, env_ids=None):
+        if env_ids == None:
+            env_ids = torch.arange(0, self.num_envs)
 
         min_displacement, max_displacement = self.cfg.domain_rand.com_displacement_range
         if self.cfg.terrain.terrain_type == "plane":
@@ -383,7 +409,16 @@ class LeggedRobot(BaseTask):
 
             solver.set_links_com(base_com + com_displacement, [base_link_id,], torch.arange(0, self.num_envs))
 
-    def _randomize_link_inertia(self):
+    def _randomize_motor_strength(self, env_ids=None):
+        if env_ids == None:
+            env_ids = torch.arange(0, self.num_envs)
+
+        min_strength, max_strength = self.cfg.domain_rand.motor_strength_range
+        self.motor_strengths[env_ids, :] = torch.rand(len(env_ids), dtype=torch.float, device=self.device,
+                                                    requires_grad=False).unsqueeze(1) * (
+                                                max_strength - min_strength) + min_strength
+
+    def _randomize_link_inertia(self, env_ids=None):
         raise NotImplementedError
 
         min_friction, max_friction = self.cfg.domain_rand.friction_range
@@ -511,10 +546,6 @@ class LeggedRobot(BaseTask):
         control_type = self.cfg.control.control_type
         if control_type=="P":
             torques = self.p_gains*(actions_scaled + self.default_dof_pos - self.dof_pos) - self.d_gains*self.dof_vel
-        elif control_type=="V":
-            torques = self.p_gains*(actions_scaled - self.dof_vel) - self.d_gains*(self.dof_vel - self.last_dof_vel)/self.sim_params.dt
-        elif control_type=="T":
-            torques = actions_scaled
         else:
             raise NameError(f"Unknown controller type: {control_type}")
         return torch.clip(torques, -self.torque_limits, self.torque_limits)

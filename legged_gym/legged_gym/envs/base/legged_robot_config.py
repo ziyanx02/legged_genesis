@@ -122,11 +122,15 @@ class LeggedRobotCfg(BaseConfig):
 
     class domain_rand:
         randomize_friction = True
-        friction_range = [0.5, 1.25]
+        friction_range = [0.3, 1.5]
         randomize_base_mass = True
-        added_mass_range = [-1., 1.]
+        added_mass_range = [-1., 3.]
         randomize_com_displacement = True
         com_displacement_range = [-0.15, 0.15]
+        randomize_motor_strength = True
+        motor_strength_range = [0.9, 1.1]
+        randomize_motor_offset = True
+        motor_offset_range = [-0.02, 0.02]
         push_robots = True
         push_interval_s = 15
         max_push_vel_xy = 1.
@@ -138,7 +142,7 @@ class LeggedRobotCfg(BaseConfig):
             tracking_ang_vel = 0.5
             lin_vel_z = -2.0
             ang_vel_xy = -0.05
-            orientation = -0.
+            orientation = -0.1
             torques = -0.00001
             dof_vel = -0.
             dof_acc = -2.5e-7
@@ -232,8 +236,8 @@ class LeggedRobotCfgPPO(BaseConfig):
         entropy_coef = 0.01
         num_learning_epochs = 5
         num_mini_batches = 4 # mini batch size = num_envs*nsteps / nminibatches
-        learning_rate = 1.e-3 #5.e-4
-        schedule = 'adaptive' # could be adaptive, fixed
+        learning_rate = 5e-4 #5.e-4
+        schedule = 'fixed' # could be adaptive, fixed
         gamma = 0.99
         lam = 0.95
         desired_kl = 0.01
