@@ -185,9 +185,16 @@ class OnPolicyRunner:
                         ep_info[key] = ep_info[key].unsqueeze(0)
                     infotensor = torch.cat((infotensor, ep_info[key].to(self.device)))
                 value = torch.mean(infotensor)
-                wandb_dict['Episode/' + key] = value
-                wandb_dict['Step/' + key] = value / mean_episode_length
-                ep_string += f"""{f'Mean episode {key}:':>{pad}} {value:.4f}\n"""
+                if "tracking" in key:
+                    wandb_dict['Tracking/' + key] = value
+                elif key[:4] == "rew_":
+                    wandb_dict['Reward/' + key[4:]] = value
+                elif "command" in key:
+                    wandb_dict['Command/' + key] = value
+                else:
+                    wandb_dict['Episode/' + key] = value
+                # wandb_dict['Step/' + key] = value / mean_episode_length
+                # ep_string += f"""{f'Mean episode {key}:':>{pad}} {value:.4f}\n"""
         mean_std = self.alg.actor_critic.std.mean()
         fps = int(self.num_steps_per_env * self.env.num_envs / (locs['collection_time'] + locs['learn_time']))
 
@@ -195,8 +202,7 @@ class OnPolicyRunner:
         wandb_dict['Loss/surrogate'] = locs['mean_surrogate_loss']
         # wandb_dict['Loss/entropy_coef'] = locs['entropy_coef']
         wandb_dict['Loss/learning_rate'] = self.alg.learning_rate
-        
-        wandb_dict['Policy/mean_noise_std'] = mean_std.item()
+        wandb_dict['Loss/mean_noise_std'] = mean_std.item()
         
         wandb_dict['Perf/total_fps'] = fps
         wandb_dict['Perf/collection time'] = locs['collection_time']

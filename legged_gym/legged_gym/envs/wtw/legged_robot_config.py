@@ -244,15 +244,13 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
     class domain_rand:
         rand_interval_s = 10
         randomize_rigids_after_start = True
-        randomize_friction = True
+        randomize_friction = False # True
         friction_range = [0.1, 3.0]  # increase range
         randomize_restitution = False
         restitution_range = [0, 1.0]
-        randomize_base_mass = True
-        # add link masses, increase range, randomize inertia, randomize joint properties
+        randomize_base_mass = False # True
         added_mass_range = [-1., 3.]
         randomize_com_displacement = False
-        # add link masses, increase range, randomize inertia, randomize joint properties
         com_displacement_range = [-0.15, 0.15]
         randomize_motor_strength = True
         motor_strength_range = [0.9, 1.1]
@@ -266,11 +264,11 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         gravity_impulse_duration = 1.0
         randomize_gravity = False
         gravity_range = [-1.0, 1.0]
-        push_robots = True
-        push_interval_s = 15
+        push_robots = False # True
+        push_interval_s = 10
         max_push_vel_xy = 1.
-        randomize_lag_timesteps = True
-        lag_timesteps = 6
+        randomize_lag_timesteps = False # True
+        lag_timesteps = 0 # 6
 
     class curriculum_thresholds:
         tracking_lin_vel = 0.8  # closer to 1 is tighter

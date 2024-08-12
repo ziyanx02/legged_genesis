@@ -43,15 +43,14 @@ class LeggedRobotWTW(LeggedRobot):
         self.prev_base_pos = self.base_pos.clone()
         self.prev_base_quat = self.base_quat.clone()
         self.prev_base_lin_vel = self.base_lin_vel.clone()
-        self.prev_foot_velocities = self.foot_velocities.clone()
 
         self._update_buffers()
         
-        # TODO: rigid_body_state
-        self.foot_velocities = self.rigid_body_state.view(self.num_envs, self.num_body, 13
-                                                          )[:, self.feet_indices, 7:10]
-        self.foot_positions = self.rigid_body_state.view(self.num_envs, self.num_body, 13)[:, self.feet_indices,
-                              0:3]
+        self.prev_foot_positions = self.foot_positions.clone()
+        self.foot_positions = self.rigid_solver.get_geoms_pos(self.feet_geom_indices, torch.arange(0, self.num_envs))
+        self.prev_foot_velocities = self.foot_velocities.clone()
+        self.foot_velocities = (self.foot_positions - self.prev_foot_positions) / self.dt
+        self.foot_velocities[self.reset_buf, ...] = 0 # set velocities in envs reset last step to 0
 
         self._post_physics_step_callback()
 
@@ -758,12 +757,7 @@ class LeggedRobotWTW(LeggedRobot):
         self.links_ang = self.robot.get_links_ang()
         self.rigid_body_state = torch.cat([self.links_pos, self.links_quat, self.robot.get_links_vel(), self.robot.get_links_ang()], dim=2)
 
-        # create some wrapper tensors for different slices
-        self.foot_velocities = self.links_vel[:, self.feet_indices]
-        self.foot_positions = self.links_pos[:, self.feet_indices]
-        
         self.prev_base_pos = self.base_pos.clone()
-        self.prev_foot_velocities = self.foot_velocities.clone()
 
     def _init_custom_buffers(self):
         # domain randomization properties
@@ -777,6 +771,12 @@ class LeggedRobotWTW(LeggedRobot):
         self.Kd_factors = torch.ones(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
         self.gravities = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
 
+        # create some wrapper tensors for different slices
+        self.foot_positions = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
+        self.prev_foot_positions = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
+        self.foot_velocities = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
+        self.prev_foot_velocities = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
+        
         # if custom initialization values were passed in, set them here
         dynamics_params = ["friction_coeffs", "restitutions", "payloads", "com_displacements", "motor_strengths",
                            "Kp_factors", "Kd_factors"]
@@ -785,14 +785,10 @@ class LeggedRobotWTW(LeggedRobot):
         #         if k in dynamics_params:
         #             setattr(self, k, v.to(self.device))
 
-        self.gait_indices = torch.zeros(self.num_envs, dtype=torch.float, device=self.device,
-                                        requires_grad=False)
-        self.clock_inputs = torch.zeros(self.num_envs, 4, dtype=torch.float, device=self.device,
-                                        requires_grad=False)
-        self.doubletime_clock_inputs = torch.zeros(self.num_envs, 4, dtype=torch.float, device=self.device,
-                                                   requires_grad=False)
-        self.halftime_clock_inputs = torch.zeros(self.num_envs, 4, dtype=torch.float, device=self.device,
-                                                 requires_grad=False)
+        self.gait_indices = torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
+        self.clock_inputs = torch.zeros(self.num_envs, 4, dtype=torch.float, device=self.device, requires_grad=False)
+        self.doubletime_clock_inputs = torch.zeros(self.num_envs, 4, dtype=torch.float, device=self.device, requires_grad=False)
+        self.halftime_clock_inputs = torch.zeros(self.num_envs, 4, dtype=torch.float, device=self.device, requires_grad=False)
 
     def _init_command_distribution(self, env_ids):
         # new style curriculum
@@ -913,13 +909,11 @@ class LeggedRobotWTW(LeggedRobot):
         self.episode_sums = {
             name: torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
             for name in self.reward_scales.keys()}
-        self.episode_sums["total"] = torch.zeros(self.num_envs, dtype=torch.float, device=self.device,
-                                                 requires_grad=False)
+        self.episode_sums["total"] = torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
         self.episode_sums_eval = {
             name: -1 * torch.ones(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
             for name in self.reward_scales.keys()}
-        self.episode_sums_eval["total"] = torch.zeros(self.num_envs, dtype=torch.float, device=self.device,
-                                                      requires_grad=False)
+        self.episode_sums_eval["total"] = torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
         self.command_sums = {
             name: torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
             for name in

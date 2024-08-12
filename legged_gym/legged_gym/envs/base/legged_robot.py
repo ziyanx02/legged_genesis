@@ -133,12 +133,9 @@ class LeggedRobot(BaseTask):
         self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
         # step physics and render each frame
 
-        # for solver in self.scene.sim.solvers:
-        #     if not isinstance(solver, RigidSolver):
-        #         continue
-            
-        #     result = solver.get_links_com([1,], torch.arange(0, self.num_envs))
-        #     print(result)
+        # result = self.rigid_solver.get_links_com([1,], torch.arange(0, self.num_envs))
+        # result = self.rigid_solver.get_geoms_pos(self.feet_geom_indices, torch.arange(0, self.num_envs))
+        # print(result.shape)
         # import time
         # time.sleep(0.5)
 
@@ -335,6 +332,11 @@ class LeggedRobot(BaseTask):
 
         self.scene.build(n_envs=self.num_envs)
 
+        for solver in self.scene.sim.solvers:
+            if not isinstance(solver, RigidSolver):
+                continue
+            self.rigid_solver = solver
+            
         self._randomize_rigids()
 
         self._get_env_origins()
@@ -366,17 +368,15 @@ class LeggedRobot(BaseTask):
 
         min_friction, max_friction = self.cfg.domain_rand.friction_range
 
-        for solver in self.scene.sim.solvers:
-            if not isinstance(solver, RigidSolver):
-                continue
-            
-            if not hasattr(self, "geom_friction"):
-                self.geom_friction = solver.get_geoms_friction(torch.arange(0, solver.n_geoms), [0,])
+        solver = self.rigid_solver
 
-            geom_friction = self.geom_friction.repeat(len(env_ids), 1)
-            ratios = torch.rand(len(env_ids), 1, dtype=torch.float, device=self.device, requires_grad=False).repeat(1, solver.n_geoms) \
-                     * (max_friction - min_friction) + min_friction
-            solver.set_geoms_friction(geom_friction * ratios, torch.arange(0, solver.n_geoms), env_ids)
+        if not hasattr(self, "geom_friction"):
+            self.geom_friction = solver.get_geoms_friction(torch.arange(0, solver.n_geoms), [0,])
+
+        geom_friction = self.geom_friction.repeat(len(env_ids), 1)
+        ratios = torch.rand(len(env_ids), 1, dtype=torch.float, device=self.device, requires_grad=False).repeat(1, solver.n_geoms) \
+                    * (max_friction - min_friction) + min_friction
+        solver.set_geoms_friction(geom_friction * ratios, torch.arange(0, solver.n_geoms), env_ids)
 
     def _randomize_base_mass(self, env_ids):
 
@@ -386,18 +386,16 @@ class LeggedRobot(BaseTask):
         else:
             raise NotImplementedError
 
-        for solver in self.scene.sim.solvers:
-            if not isinstance(solver, RigidSolver):
-                continue
+        solver = self.rigid_solver
 
-            if not hasattr(self, "base_mass"):
-                self.base_mass = solver.get_links_mass([base_link_id,], [0,])
+        if not hasattr(self, "base_mass"):
+            self.base_mass = solver.get_links_mass([base_link_id,], [0,])
 
-            base_mass = self.base_mass.repeat(len(env_ids), 1)
-            added_mass = torch.rand(len(env_ids), 1, dtype=torch.float, device=self.device, requires_grad=False) \
-                         * (max_mass - min_mass) + min_mass
+        base_mass = self.base_mass.repeat(len(env_ids), 1)
+        added_mass = torch.rand(len(env_ids), 1, dtype=torch.float, device=self.device, requires_grad=False) \
+                        * (max_mass - min_mass) + min_mass
 
-            solver.set_links_mass(added_mass + base_mass, [base_link_id,], env_ids)
+        solver.set_links_mass(added_mass + base_mass, [base_link_id,], env_ids)
 
     def _randomize_com_displacement(self, env_ids):
 
@@ -407,18 +405,16 @@ class LeggedRobot(BaseTask):
         else:
             raise NotImplementedError
 
-        for solver in self.scene.sim.solvers:
-            if not isinstance(solver, RigidSolver):
-                continue
+        solver = self.rigid_solver
 
-            if not hasattr(self, "base_com"):
-                self.base_com = solver.get_links_com([base_link_id,], [0,])
+        if not hasattr(self, "base_com"):
+            self.base_com = solver.get_links_com([base_link_id,], [0,])
 
-            base_com = self.base_com.repeat(len(env_ids), 1, 1)
-            com_displacement = torch.rand(len(env_ids), 1, 3, dtype=torch.float, device=self.device, requires_grad=False) \
-                               * (max_displacement - min_displacement) + min_displacement
+        base_com = self.base_com.repeat(len(env_ids), 1, 1)
+        com_displacement = torch.rand(len(env_ids), 1, 3, dtype=torch.float, device=self.device, requires_grad=False) \
+                            * (max_displacement - min_displacement) + min_displacement
 
-            solver.set_links_com(base_com + com_displacement, [base_link_id,], env_ids)
+        solver.set_links_com(base_com + com_displacement, [base_link_id,], env_ids)
 
     def _randomize_motor_strength(self, env_ids):
 
@@ -437,13 +433,11 @@ class LeggedRobot(BaseTask):
 
         min_friction, max_friction = self.cfg.domain_rand.friction_range
 
-        for solver in self.scene.sim.solvers:
-            if not isinstance(solver, RigidSolver):
-                continue
+        solver = self.rigid_solver
 
-            ratios = torch.rand(self.num_envs, solver.n_links, dtype=torch.float, device=self.device, requires_grad=False) \
-                     * (max_friction - min_friction) + min_friction
-            solver.adjust_links_inertia(ratios, torch.arange(0, solver.n_links), torch.arange(0, self.num_envs))
+        ratios = torch.rand(self.num_envs, solver.n_links, dtype=torch.float, device=self.device, requires_grad=False) \
+                 * (max_friction - min_friction) + min_friction
+        solver.adjust_links_inertia(ratios, torch.arange(0, solver.n_links), torch.arange(0, self.num_envs))
 
     def _process_rigid_shape_props(self, props, env_id):
         """ Callback allowing to store/change/randomize the rigid shape properties of each environment.
@@ -882,6 +876,8 @@ class LeggedRobot(BaseTask):
             for j in range(len(termination_contact_names)):
                 if termination_contact_names[j] == self.body_names[i]:
                     self.termination_contact_indices[j] = i
+
+        self.feet_geom_indices = torch.tensor([15, 19, 23, 27])
 
     def _create_terrain(self):
         """ Create terrains:
