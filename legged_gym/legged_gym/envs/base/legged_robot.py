@@ -130,7 +130,7 @@ class LeggedRobot(BaseTask):
             actions (torch.Tensor): Tensor of shape (num_envs, num_actions_per_env)
         """
         clip_actions = self.cfg.normalization.clip_actions
-        self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device) * 0
+        self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
         # step physics and render each frame
 
         # result = self.rigid_solver.get_links_com([1,], torch.arange(0, self.num_envs))
@@ -290,40 +290,52 @@ class LeggedRobot(BaseTask):
         self.up_axis_idx = 2 # 2 for z, 1 for y -> adapt gravity accordingly
 
         if self.headless == False:
-            # subscribe to keyboard shortcuts
-            viewer_options = gs.options.ViewerOptions(
-                res=(1080, 720),
-                max_FPS=int(1 / self.cfg.sim.dt),
-                camera_pos=self.cfg.viewer.pos,
-                camera_lookat=self.cfg.viewer.lookat,
-                camera_fov=self.cfg.viewer.fov,
+            self.scene = gs.Scene(
+                sim_options=gs.options.SimOptions(
+                    substeps=self.cfg.sim.substeps,
+                    dt=self.cfg.sim.dt,
+                ),
+                viewer_options=gs.options.ViewerOptions(
+                    res=(1080, 720),
+                    max_FPS=int(1 / self.cfg.sim.dt),
+                    camera_pos=self.cfg.viewer.pos,
+                    camera_lookat=self.cfg.viewer.lookat,
+                    camera_fov=self.cfg.viewer.fov,
+                ),
+                rigid_options=gs.options.RigidOptions(
+                    dt=self.cfg.sim.dt, # TODO: what's this
+                    constraint_solver=gs.constraint_solver.Newton,
+                    enable_collision=True,
+                    enable_joint_limit=True,
+                ),
+                mpm_options=gs.options.MPMOptions(
+                    lower_bound=(-0.1, -0.1, -0.1),
+                    upper_bound=(1.1, 1.1, 1.1),
+                    grid_density=64,
+                ),
+                show_FPS=False,
             )
         else:
-            viewer_options = None
-            # self.gym.subscribe_viewer_keyboard_event(
-            #     self.viewer, gymapi.KEY_ESCAPE, "QUIT")
-            # self.gym.subscribe_viewer_keyboard_event(
-            #     self.viewer, gymapi.KEY_V, "toggle_viewer_sync")
+            self.scene = gs.Scene(
+                sim_options=gs.options.SimOptions(
+                    substeps=self.cfg.sim.substeps,
+                    dt=self.cfg.sim.dt,
+                ),
+                rigid_options=gs.options.RigidOptions(
+                    dt=self.cfg.sim.dt, # TODO: what's this
+                    constraint_solver=gs.constraint_solver.Newton,
+                    enable_collision=True,
+                    enable_joint_limit=True,
+                ),
+                mpm_options=gs.options.MPMOptions(
+                    lower_bound=(-0.1, -0.1, -0.1),
+                    upper_bound=(1.1, 1.1, 1.1),
+                    grid_density=64,
+                ),
+                show_FPS=False,
+                show_viewer=False,
+            )
         
-        self.scene = gs.Scene(
-            sim_options=gs.options.SimOptions(
-                substeps=self.cfg.sim.substeps,
-                dt=self.cfg.sim.dt,
-            ),
-            viewer_options=viewer_options,
-            rigid_options=gs.options.RigidOptions(
-                dt=self.cfg.sim.dt, # TODO: what's this
-                constraint_solver=gs.constraint_solver.Newton,
-                enable_collision=True,
-                enable_joint_limit=True,
-            ),
-            mpm_options=gs.options.MPMOptions(
-                lower_bound=(-0.1, -0.1, -0.1),
-                upper_bound=(1.1, 1.1, 1.1),
-                grid_density=64,
-            ),
-            show_FPS=False,
-        )
         self._create_terrain()
         self._create_robot()
         self._set_camera()
