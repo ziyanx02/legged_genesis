@@ -397,7 +397,8 @@ class LeggedRobot(BaseTask):
         if self.cfg.terrain.terrain_type == "plane":
             base_link_id = 1 # 0 is planeLink
         else:
-            raise NotImplementedError
+            base_link_id = 1 # TODO
+            # raise NotImplementedError
 
         solver = self.rigid_solver
 
@@ -416,7 +417,8 @@ class LeggedRobot(BaseTask):
         if self.cfg.terrain.terrain_type == "plane":
             base_link_id = 1 # o is planeLink
         else:
-            raise NotImplementedError
+            base_link_id = 1 # TODO
+            # raise NotImplementedError
 
         solver = self.rigid_solver
 
@@ -1028,7 +1030,8 @@ class LeggedRobot(BaseTask):
             Default behaviour: draws height measurement points
         """
         self.scene.clear_debug_objects()
-        self.scene.draw_debug_spheres(poss=self.measured_height_points[env_id].reshape(-1, 3), radius=0.02, color=(0, 0, 1, 0.7))
+        # self.scene.draw_debug_spheres(poss=self.measured_height_points[env_id].reshape(-1, 3), radius=0.02, color=(0, 0, 1, 0.7))
+        # self.scene.draw_debug_spheres(poss=self.foot_positions[env_id].reshape(-1, 3), radius=0.02, color=(1, 0, 0, 0.7))
 
     def _init_height_points(self):
         """ Returns points at which the height measurments are sampled (in base frame)

@@ -110,6 +110,8 @@ def update_cfg_from_args(env_cfg: LeggedRobotCfg, cfg_train: LeggedRobotCfgPPO, 
             env_cfg.terrain.num_cols = args.num_cols
         if args.video_path is not None:
             env_cfg.viewer.video_path = args.video_path
+        if args.debug:
+            env_cfg.viewer.debug = True
     if cfg_train is not None:
         if args.seed is not None:
             cfg_train.seed = args.seed

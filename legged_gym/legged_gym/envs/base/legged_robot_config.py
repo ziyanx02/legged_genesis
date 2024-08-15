@@ -152,7 +152,7 @@ class LeggedRobotCfg(BaseConfig):
             feet_stumble = -0.0 
             action_rate = -0.01
             stand_still = -0.
-            feet_height = 1
+            feet_height = 0
 
         only_positive_rewards = False # if true negative total rewards are clipped at zero (avoids early termination problems)
         tracking_sigma = 0.25 # tracking reward = exp(-error^2/sigma)
@@ -239,7 +239,7 @@ class LeggedRobotCfgPPO(BaseConfig):
         num_learning_epochs = 5
         num_mini_batches = 4 # mini batch size = num_envs*nsteps / nminibatches
         learning_rate = 5e-4 #5.e-4
-        schedule = 'fixed' # could be adaptive, fixed
+        schedule = 'adaptive' # could be adaptive, fixed
         gamma = 0.99
         lam = 0.95
         desired_kl = 0.01

@@ -1,6 +1,6 @@
 from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
 
-class GO2Cfg( LeggedRobotCfg ):
+class GO2RoughCfg( LeggedRobotCfg ):
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.42] # x,y,z [m]
         default_joint_angles = { # = target angles [rad] when action = 0.0
@@ -30,6 +30,13 @@ class GO2Cfg( LeggedRobotCfg ):
         # decimation: Number of control action updates @ sim DT per policy DT
         decimation = 4
 
+    class terrain( LeggedRobotCfg.terrain ):
+        terrain_type = 'random_uniform_terrain' # "plane" or "flat_terrain"
+        horizontal_scale = 0.1 # [m]
+        vertical_scale = 0.005 # [m]
+        terrain_length = 4.
+        terrain_width = 4.
+    
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/go2/urdf/go2.urdf'
         name = "go2"
@@ -47,7 +54,7 @@ class GO2Cfg( LeggedRobotCfg ):
             base_height = -100.0
             feet_height = -1
 
-class GO2CfgPPO( LeggedRobotCfgPPO ):
+class GO2RoughCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
         entropy_coef = 0.01
     class runner( LeggedRobotCfgPPO.runner ):
