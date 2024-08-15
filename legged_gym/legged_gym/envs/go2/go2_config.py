@@ -14,7 +14,7 @@ class GO2Cfg( LeggedRobotCfg ):
             'RL_thigh_joint': 1.,   # [rad]
             'RR_thigh_joint': 1.,   # [rad]
 
-            'FL_calf_joint': -1.5,   # [rad]
+            'FL_calf_joint': -2,   # [rad]
             'FR_calf_joint': -1.5,  # [rad]
             'RL_calf_joint': -1.5,    # [rad]
             'RR_calf_joint': -1.5,    # [rad]
@@ -40,10 +40,12 @@ class GO2Cfg( LeggedRobotCfg ):
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
         base_height_target = 0.27
+        feet_height_target = 0.07
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0002
             dof_pos_limits = -10.0
             base_height = -100.0
+            feet_height = -1
 
 class GO2CfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):

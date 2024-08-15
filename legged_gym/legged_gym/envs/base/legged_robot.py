@@ -1157,7 +1157,9 @@ class LeggedRobot(BaseTask):
         return rew_airTime
 
     def _reward_feet_height(self):
-        return self.foot_positions[:, :, 2].sum(dim=-1)
+        feet_height = self.foot_positions[:, :, 2] - self.measured_heights
+        sorted_height, _ = torch.sort(feet_height, dim=1, descending=True)
+        return torch.abs(sorted_height - self.cfg.rewards.feet_height_target).sum(dim=-1)
 
     def _reward_stumble(self):
         # Penalize feet hitting vertical surfaces
