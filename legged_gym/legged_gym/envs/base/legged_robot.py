@@ -130,7 +130,7 @@ class LeggedRobot(BaseTask):
             actions (torch.Tensor): Tensor of shape (num_envs, num_actions_per_env)
         """
         clip_actions = self.cfg.normalization.clip_actions
-        self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
+        self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device) * 0
         # step physics and render each frame
 
         # result = self.rigid_solver.get_links_com([1,], torch.arange(0, self.num_envs))
@@ -187,7 +187,8 @@ class LeggedRobot(BaseTask):
         """
         self.reset_buf = torch.any(torch.norm(self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
         self.time_out_buf = self.episode_length_buf > self.max_episode_length # no terminal reward for time-outs
-        self.reset_buf |= torch.logical_or(torch.abs(self.rpy[:,1]) > self.cfg.asset.terminate_if_pitch_greater_than, torch.abs(self.rpy[:,0]) > self.cfg.asset.terminate_if_roll_greater_than)
+        self.reset_buf |= torch.abs(self.rpy[:,1]) > self.cfg.asset.terminate_if_pitch_greater_than
+        self.reset_buf |= torch.abs(self.rpy[:,0]) > self.cfg.asset.terminate_if_roll_greater_than
         self.reset_buf |= self.time_out_buf
         if self.cfg.asset.terminate_if_height_lower_than is not None:
             self.height_illegal_buf = self.base_pos[:, self.up_axis_idx] < self.cfg.asset.terminate_if_height_lower_than
@@ -336,7 +337,7 @@ class LeggedRobot(BaseTask):
             if not isinstance(solver, RigidSolver):
                 continue
             self.rigid_solver = solver
-            
+
         self._randomize_rigids()
 
         self._get_env_origins()
@@ -382,7 +383,7 @@ class LeggedRobot(BaseTask):
 
         min_mass, max_mass = self.cfg.domain_rand.added_mass_range
         if self.cfg.terrain.terrain_type == "plane":
-            base_link_id = 1 # o is planeLink
+            base_link_id = 1 # 0 is planeLink
         else:
             raise NotImplementedError
 
@@ -694,6 +695,12 @@ class LeggedRobot(BaseTask):
         gravity_vec[self.up_axis_idx] = -1
         self.gravity_vec = gravity_vec.repeat((self.num_envs, 1))
         self.forward_vec = torch.tensor([1., 0., 0.], device=self.device).repeat((self.num_envs, 1))
+
+        # these are used in _update_buffers
+        self.foot_positions = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
+        self.prev_foot_positions = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
+        self.foot_velocities = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
+        self.prev_foot_velocities = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
         
         # initialize buffers storing robots' state info
         self._update_buffers()
@@ -751,6 +758,12 @@ class LeggedRobot(BaseTask):
         self.base_ang_vel = quat_rotate_inverse(self.base_quat, self.root_states[:, 10:13])
 
         self.projected_gravity = quat_rotate_inverse(self.base_quat, self.gravity_vec)
+
+        self.prev_foot_positions = self.foot_positions.clone()
+        self.foot_positions = self.rigid_solver.get_geoms_pos(self.feet_geom_indices, torch.arange(0, self.num_envs))
+        self.prev_foot_velocities = self.foot_velocities.clone()
+        self.foot_velocities = (self.foot_positions - self.prev_foot_positions) / self.dt
+        self.foot_velocities[self.reset_buf, ...] = 0 # set velocities in envs reset last step to 0
 
     def _prepare_reward_function(self):
         """ Prepares a list of reward functions, whcih will be called to compute the total reward.
@@ -1134,7 +1147,7 @@ class LeggedRobot(BaseTask):
         # Reward long steps
         # Need to filter the contacts because the contact reporting of PhysX is unreliable on meshes
         contact = self.contact_forces[:, self.feet_indices, 2] > 1.
-        contact_filt = torch.logical_or(contact, self.last_contacts) 
+        contact_filt = torch.logical_or(contact, self.last_contacts)
         self.last_contacts = contact
         first_contact = (self.feet_air_time > 0.) * contact_filt
         self.feet_air_time += self.dt
@@ -1142,7 +1155,10 @@ class LeggedRobot(BaseTask):
         rew_airTime *= torch.norm(self.commands[:, :2], dim=1) > 0.1 #no reward for zero command
         self.feet_air_time *= ~contact_filt
         return rew_airTime
-    
+
+    def _reward_feet_height(self):
+        return self.foot_positions[:, :, 2].sum(dim=-1)
+
     def _reward_stumble(self):
         # Penalize feet hitting vertical surfaces
         return torch.any(torch.norm(self.contact_forces[:, self.feet_indices, :2], dim=2) >\

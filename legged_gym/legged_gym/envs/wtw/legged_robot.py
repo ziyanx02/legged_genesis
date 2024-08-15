@@ -46,12 +46,6 @@ class LeggedRobotWTW(LeggedRobot):
 
         self._update_buffers()
         
-        self.prev_foot_positions = self.foot_positions.clone()
-        self.foot_positions = self.rigid_solver.get_geoms_pos(self.feet_geom_indices, torch.arange(0, self.num_envs))
-        self.prev_foot_velocities = self.foot_velocities.clone()
-        self.foot_velocities = (self.foot_positions - self.prev_foot_positions) / self.dt
-        self.foot_velocities[self.reset_buf, ...] = 0 # set velocities in envs reset last step to 0
-
         self._post_physics_step_callback()
 
         # compute observations, rewards, resets, ...
@@ -771,12 +765,6 @@ class LeggedRobotWTW(LeggedRobot):
         self.Kd_factors = torch.ones(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
         self.gravities = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
 
-        # create some wrapper tensors for different slices
-        self.foot_positions = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
-        self.prev_foot_positions = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
-        self.foot_velocities = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
-        self.prev_foot_velocities = torch.ones(self.num_envs, len(self.feet_geom_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
-        
         # if custom initialization values were passed in, set them here
         dynamics_params = ["friction_coeffs", "restitutions", "payloads", "com_displacements", "motor_strengths",
                            "Kp_factors", "Kd_factors"]

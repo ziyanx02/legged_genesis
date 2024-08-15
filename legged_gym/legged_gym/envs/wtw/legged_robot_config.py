@@ -32,7 +32,7 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 
 class LeggedRobotCfgWTW(LeggedRobotCfg):
     class env:
-        num_envs = 4096 
+        num_envs = 4096
         num_observations = 70
         num_scalar_observations = 70
         num_privileged_obs = 2 # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise 
@@ -142,39 +142,38 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         body_height_cmd = [-0.25, 0.15]
         impulse_height_commands = False
 
-        limit_vel_x = [-5.0, 5.0]
+        limit_vel_x = [-1.0, 1.0]
         limit_vel_y = [-0.6, 0.6]
-        limit_vel_yaw = [-5.0, 5.0]
+        limit_vel_yaw = [-1.0, 1.0]
         limit_body_height = [-0.25, 0.15]
         limit_gait_phase = [0.0, 1.0]
         limit_gait_offset = [0.0, 1.0]
         limit_gait_bound = [0.0, 1.0]
         limit_gait_duration = [0.5, 0.5]
         limit_gait_frequency = [2.0, 4.0]
-        limit_footswing_height = [0.03, 0.35]
-        limit_body_pitch = [-0.4, 0.4]
+        limit_footswing_height = [0.1, 0.2]
+        limit_body_pitch = [-0.2, 0.2]
         limit_body_roll = [-0.0, 0.0]
         limit_aux_reward_coef = [0.0, 0.01]
         limit_compliance = [0.0, 0.01]
-        limit_stance_width = [0.10, 0.45]
+        limit_stance_width = [0.2, 0.35]
         limit_stance_length = [0.35, 0.45]
 
-        num_bins_vel_x = 21
-        num_bins_vel_y = 1
-        num_bins_vel_yaw = 21
-        num_bins_body_height = 1
-        num_bins_gait_frequency = 1
-        num_bins_gait_phase = 1
-        num_bins_gait_offset = 1
-        num_bins_gait_bound = 1
+        num_bins_vel_x = 11
+        num_bins_vel_y = 11
+        num_bins_vel_yaw = 11
+        num_bins_body_height = 11
+        num_bins_gait_frequency = 5
+        num_bins_gait_phase = 3
+        num_bins_gait_offset = 3
+        num_bins_gait_bound = 3
         num_bins_gait_duration = 1
-        num_bins_footswing_height = 1
+        num_bins_footswing_height = 3
         num_bins_body_roll = 1
-        num_bins_body_pitch = 1
-        num_bins_stance_width = 1
-        num_bins_stance_length = 1
+        num_bins_body_pitch = 5
+        num_bins_stance_width = 5
+        num_bins_stance_length = 3
         num_bins_aux_reward_coef = 1
-        num_bins_compliance = 1
         num_bins_compliance = 1
 
         heading = [-3.14, 3.14]
@@ -184,10 +183,10 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         gait_bound_cmd_range = [0.0, 1.0]
         gait_frequency_cmd_range = [2.0, 4.0]
         gait_duration_cmd_range = [0.5, 0.5]
-        footswing_height_range = [0.03, 0.35]
-        body_pitch_range = [-0.4, 0.4]
+        footswing_height_range = [0.1, 0.3]
+        body_pitch_range = [-0.2, 0.2]
         body_roll_range = [-0.0, 0.0]
-        stance_width_range = [0.10, 0.45]
+        stance_width_range = [0.2, 0.35]
         stance_length_range = [0.35, 0.45]
         aux_reward_coef_range = [0.0, 0.01]
 
@@ -224,8 +223,8 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         penalize_contacts_on = []
         terminate_after_contacts_on = []
         terminate_if_height_lower_than = 0
-        terminate_if_roll_greater_than = 0.8
-        terminate_if_pitch_greater_than = 1.0
+        terminate_if_roll_greater_than = 0.6
+        terminate_if_pitch_greater_than = 0.6
         disable_gravity = False
         collapse_fixed_joints = True # merge bodies connected by fixed joints. Specific fixed joints can be kept by adding " <... dont_collapse="true">
         fix_base_link = False # fixe the base of the robot

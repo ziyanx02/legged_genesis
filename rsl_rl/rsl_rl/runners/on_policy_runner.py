@@ -202,6 +202,7 @@ class OnPolicyRunner:
         wandb_dict['Loss/surrogate'] = locs['mean_surrogate_loss']
         # wandb_dict['Loss/entropy_coef'] = locs['entropy_coef']
         wandb_dict['Loss/learning_rate'] = self.alg.learning_rate
+        wandb_dict['Loss/kl_mean'] = self.alg.kl_mean
         wandb_dict['Loss/mean_noise_std'] = mean_std.item()
         
         wandb_dict['Perf/total_fps'] = fps
