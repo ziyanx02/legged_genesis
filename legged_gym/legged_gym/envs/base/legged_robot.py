@@ -584,8 +584,8 @@ class LeggedRobot(BaseTask):
             env_ids (List[int]): Environemnt ids
         """
 
-        # TODO: add randomization
         self.dof_pos[env_ids] = self.default_dof_pos[env_ids]
+        self.dof_pos[env_ids] += 0.5 * (torch.rand_like(self.dof_pos[env_ids], device=self.device, requires_grad=False) - 0.5)
         self.dof_vel[env_ids] = 0.
 
         dof_vel = torch.zeros([self.dof_vel[env_ids].shape[0], 6 + self.num_dof], device=self.device, requires_grad=False)
@@ -600,33 +600,16 @@ class LeggedRobot(BaseTask):
             env_ids (List[int]): Environemnt ids
         """
 
-        # TODO: add randomization
         self.root_states[env_ids] = self.base_init_state
         self.root_states[env_ids, :3] += self.env_origins[env_ids]
         self.root_states[env_ids, :2] += 1 * (torch.rand(self.root_states[env_ids, :2].shape, device=self.device) - 0.5)
         self.base_pos[env_ids] = self.root_states[env_ids, :3]
-        self.base_quat[env_ids] = self.root_states[env_ids, 3:7]
-        self.base_lin_vel[env_ids] = self.root_states[env_ids, 7:10]
-        self.base_ang_vel[env_ids] = self.root_states[env_ids, 10:]
+
+        random_rotation = 0.5 * (torch.rand((len(env_ids), 3), device=self.device, requires_grad=False) - 0.5)
+        random_rotation[:, 2] = 2 * torch.rand((len(env_ids)), device=self.device, requires_grad=False) * torch.pi
 
         self.robot.set_pos(self.base_pos[env_ids], envs_idx=env_ids)
-        self.robot.set_quat(self.base_quat[env_ids], envs_idx=env_ids)
-
-        return
-        # base position
-        if self.custom_origins:
-            self.root_states[env_ids] = self.base_init_state
-            self.root_states[env_ids, :3] += self.env_origins[env_ids]
-            self.root_states[env_ids, :2] += torch_rand_float(-1., 1., (len(env_ids), 2), device=self.device) # xy position within 1m of the center
-        else:
-            self.root_states[env_ids] = self.base_init_state
-            self.root_states[env_ids, :3] += self.env_origins[env_ids]
-        # base velocities
-        self.root_states[env_ids, 7:13] = torch_rand_float(-0.5, 0.5, (len(env_ids), 6), device=self.device) # [7:10]: lin vel, [10:13]: ang vel
-        env_ids_int32 = env_ids.to(dtype=torch.int32)
-        self.gym.set_actor_root_state_tensor_indexed(self.sim,
-                                                     gymtorch.unwrap_tensor(self.root_states),
-                                                     gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
+        self.robot.set_dofs_position(random_rotation, dofs_idx_local=[3, 4, 5], envs_idx=env_ids)
 
     def _push_robots(self):
         """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity. 
