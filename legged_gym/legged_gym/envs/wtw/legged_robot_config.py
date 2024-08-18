@@ -149,9 +149,9 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
 
         impulse_height_commands = False
 
-        limit_vel_x = [-5.0, 5.0]
+        limit_vel_x = [-3.0, 3.0]
         limit_vel_y = [0, 0]#[-0.6, 0.6]
-        limit_vel_yaw = [-5.0, 5.0]
+        limit_vel_yaw = [-3.0, 3.0]
         limit_body_height = [0, 0]#[-0.25, 0.15]
         limit_gait_frequency = [3, 3] #[2.0, 4.0]
         limit_gait_phase = [0.0, 1.0]
@@ -166,9 +166,9 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         limit_stance_width = [0.3, 0.3] #[0.10, 0.45]
         limit_stance_length = [0.45, 0.45] #[0.35, 0.45]
 
-        num_bins_vel_x = 21
+        num_bins_vel_x = 11
         num_bins_vel_y = 1
-        num_bins_vel_yaw = 21
+        num_bins_vel_yaw = 11
         num_bins_body_height = 1
         num_bins_gait_frequency = 1
         num_bins_gait_phase = 1

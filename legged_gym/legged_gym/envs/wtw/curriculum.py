@@ -51,7 +51,7 @@ class Curriculum:
 
         self.num_bins_total = self.grid.shape[1]
 
-        self.weights = np.zeros(self.num_bins_total)
+        self.weights = 0.1 * np.ones(self.num_bins_total)
         self.indices = np.arange(self.num_bins_total)
 
     def __len__(self):
