@@ -322,7 +322,6 @@ class LeggedRobot(BaseTask):
                     dt=self.cfg.sim.dt,
                 ),
                 rigid_options=gs.options.RigidOptions(
-                    dt=self.cfg.sim.dt, # TODO: what's this
                     constraint_solver=gs.constraint_solver.Newton,
                     enable_collision=True,
                     enable_joint_limit=True,

@@ -80,15 +80,13 @@ class LeggedRobotWTW(LeggedRobot):
         if len(env_ids) == 0:
             return
 
-        # TODO: _randomize_dof_props
-        # TODO: _randomize_rigid_body_props
-        # TODO: refresh_actor_rigid_shape_props
-
         # reset robot states
         self._reset_dofs(env_ids)
         self._reset_root_states(env_ids)
 
         self._resample_commands(env_ids)
+        self._randomize_rigids(env_ids)
+        self._randomize_controls(env_ids)
 
         # reset buffers
         self.last_actions[env_ids] = 0.
