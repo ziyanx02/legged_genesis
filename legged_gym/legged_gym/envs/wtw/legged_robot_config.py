@@ -312,7 +312,8 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         collision = -5.
         feet_stumble = -0.0
         action_rate = -0.01
-        action = -1
+        action_limit = -0.
+        action = -0.001
         stand_still = -0.
         tracking_lin_vel_lat = 0.
         tracking_lin_vel_long = 0.
@@ -326,7 +327,7 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         dof_pos_limits = -10.
         feet_contact_forces = 0.
         feet_slip = -0.04
-        feet_clearance_cmd_linear = -30.
+        feet_height = -30.
         dof_pos = 0.
         action_smoothness_1 = -0.1
         action_smoothness_2 = -0.1

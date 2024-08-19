@@ -36,7 +36,7 @@ class GO2CfgWTW( LeggedRobotCfgWTW ):
         name = "go2"
         foot_name = ["calf",]
         penalize_contacts_on = ["thigh"]
-        terminate_after_contacts_on = ["base"]
+        terminate_after_contacts_on = ["base", "hip"]
   
 class GO2CfgPPOWTW( LeggedRobotCfgPPOWTW ):
     class algorithm( LeggedRobotCfgPPOWTW.algorithm ):

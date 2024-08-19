@@ -859,6 +859,8 @@ class LeggedRobot(BaseTask):
             dof_id += 1
         self.default_dof_pos = self.default_dof_pos.unsqueeze(0).repeat(self.num_envs, 1)
 
+        print(self.body_names)
+        exit()
         feet_names = []
         for name in self.cfg.asset.foot_name:
             feet_names.extend([s for s in self.body_names if name in s])

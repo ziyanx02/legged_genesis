@@ -44,9 +44,13 @@ class WTWRewards:
         # Penalize changes in actions
         return torch.sum(torch.square(self.env.last_actions - self.env.actions), dim=1)
 
-    def _reward_action(self):
+    def _reward_action_limit(self):
         # Penalize actions greater than 4
         return torch.sum(torch.square(torch.abs(self.env.actions).clip(min=self.env.cfg.rewards.soft_action_limit) - self.env.cfg.rewards.soft_action_limit), dim=1)
+
+    def _reward_action(self):
+        # Penalize actions
+        return torch.sum(torch.square(self.env.actions), dim=1)
 
     def _reward_collision(self):
         # Penalize collisions on selected bodies
@@ -126,12 +130,12 @@ class WTWRewards:
         return torch.sum((torch.norm(self.env.contact_forces[:, self.env.feet_indices, :],
                                      dim=-1) - self.env.cfg.rewards.max_contact_force).clip(min=0.), dim=1)
 
-    def _reward_feet_clearance_cmd_linear(self):
+    def _reward_feet_height(self):
         phases = 1 - torch.abs(1.0 - torch.clip((self.env.foot_indices * 2.0) - 1.0, 0.0, 1.0) * 2.0)
         foot_height = (self.env.foot_positions[:, :, 2]).view(self.env.num_envs, -1)# - reference_heights
         target_height = self.env.commands[:, 9].unsqueeze(1) * phases + 0.02 # offset for foot radius 2cm
-        rew_foot_clearance = torch.square(target_height - foot_height) * (1 - self.env.desired_contact_states)
-        return torch.sum(rew_foot_clearance, dim=1)
+        rew_foot_height = torch.square(target_height - foot_height) * (1 - self.env.desired_contact_states)
+        return torch.sum(rew_foot_height, dim=1)
 
     def _reward_feet_impact_vel(self):
         prev_foot_velocities = self.env.prev_foot_velocities[:, :, 2].view(self.env.num_envs, -1)

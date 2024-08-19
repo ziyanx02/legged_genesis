@@ -35,7 +35,7 @@ class GO2Cfg( LeggedRobotCfg ):
         name = "go2"
         foot_name = ["calf",]
         penalize_contacts_on = ["thigh"]
-        terminate_after_contacts_on = ["base"]
+        terminate_after_contacts_on = ["base", "hip"]
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
