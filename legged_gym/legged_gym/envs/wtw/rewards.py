@@ -44,6 +44,10 @@ class WTWRewards:
         # Penalize changes in actions
         return torch.sum(torch.square(self.env.last_actions - self.env.actions), dim=1)
 
+    def _reward_action(self):
+        # Penalize changes in actions
+        return torch.sum(torch.square(self.env.actions), dim=1)
+
     def _reward_collision(self):
         # Penalize collisions on selected bodies
         return torch.sum(1. * (torch.norm(self.env.contact_forces[:, self.env.penalised_contact_indices, :], dim=-1) > 0.1),

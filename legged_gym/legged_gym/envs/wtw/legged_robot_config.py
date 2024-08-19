@@ -131,10 +131,10 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
 
         curriculum_seed = 100
 
-        lin_vel_x = [-1.0, 1.0]
+        lin_vel_x = [0.0, 1.0]
         lin_vel_y = [0, 0]#[-0.6, 0.6]
         ang_vel_yaw = [-1.0, 1.0]
-        body_height_cmd = [0, 0]#[-0.25, 0.15]
+        body_height_cmd = [-0.15, 0.15]
         gait_frequency_cmd_range = [3, 3] #[2.0, 4.0]
         gait_phase_cmd_range = [0.0, 1.0]
         gait_offset_cmd_range = [0.0, 1.0]
@@ -143,16 +143,16 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         footswing_height_range = [0.1, 0.1,] #[0.03, 0.35]
         body_pitch_range = [0, 0] #[-0.4, 0.4]
         body_roll_range = [-0.0, 0.0]
-        stance_width_range = [0.3, 0.3] #[0.10, 0.45]
-        stance_length_range = [0.45, 0.45] #[0.35, 0.45]
+        stance_width_range = [0.10, 0.45]
+        stance_length_range = [0.35, 0.45]
         aux_reward_coef_range = [0.0, 0.01]
 
         impulse_height_commands = False
 
-        limit_vel_x = [-3.0, 3.0]
+        limit_vel_x = [0.0, 1.0]
         limit_vel_y = [0, 0]#[-0.6, 0.6]
-        limit_vel_yaw = [-3.0, 3.0]
-        limit_body_height = [0, 0]#[-0.25, 0.15]
+        limit_vel_yaw = [-1.0, 1.0]
+        limit_body_height = [-0.15, 0.15]
         limit_gait_frequency = [3, 3] #[2.0, 4.0]
         limit_gait_phase = [0.0, 1.0]
         limit_gait_offset = [0.0, 1.0]
@@ -163,12 +163,12 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         limit_body_roll = [-0.0, 0.0]
         limit_aux_reward_coef = [0.0, 0.01]
         limit_compliance = [0.0, 0.01]
-        limit_stance_width = [0.3, 0.3] #[0.10, 0.45]
-        limit_stance_length = [0.45, 0.45] #[0.35, 0.45]
+        limit_stance_width = [0.10, 0.45]
+        limit_stance_length = [0.35, 0.45]
 
-        num_bins_vel_x = 11
+        num_bins_vel_x = 1
         num_bins_vel_y = 1
-        num_bins_vel_yaw = 11
+        num_bins_vel_yaw = 1
         num_bins_body_height = 1
         num_bins_gait_frequency = 1
         num_bins_gait_phase = 1
@@ -306,11 +306,12 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         torques = -0.0001
         dof_vel = -1e-4
         dof_acc = -2.5e-7
-        base_height = -100.0
+        base_height = -10.0
         feet_air_time = 0.0
         collision = -5.
         feet_stumble = -0.0
         action_rate = -0.01
+        action = -0.001
         stand_still = -0.
         tracking_lin_vel_lat = 0.
         tracking_lin_vel_long = 0.

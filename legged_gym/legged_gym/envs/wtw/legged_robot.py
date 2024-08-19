@@ -85,8 +85,6 @@ class LeggedRobotWTW(LeggedRobot):
         self._reset_root_states(env_ids)
 
         self._resample_commands(env_ids)
-        self._randomize_rigids(env_ids)
-        self._randomize_controls(env_ids)
 
         # reset buffers
         self.last_actions[env_ids] = 0.
@@ -376,9 +374,8 @@ class LeggedRobotWTW(LeggedRobot):
         # randomize dof properties
         rand_interval = int(self.cfg.domain_rand.rand_interval_s / self.dt)
         env_ids = (self.episode_length_buf % rand_interval == 0).nonzero(as_tuple=False).flatten()
-        # TODO: _randomize_dof_props
-        # TODO: _randomize_rigid_body_props
-        # TODO: refresh_actor_rigid_shape_props
+        self._randomize_rigids(env_ids)
+        self._randomize_controls(env_ids)
 
     def _init_command_distribution(self, env_ids):
         # new style curriculum
