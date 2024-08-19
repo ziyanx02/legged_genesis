@@ -131,7 +131,7 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
 
         curriculum_seed = 100
 
-        lin_vel_x = [0.0, 1.0]
+        lin_vel_x = [-1.0, 2.0]
         lin_vel_y = [0, 0]#[-0.6, 0.6]
         ang_vel_yaw = [-1.0, 1.0]
         body_height_cmd = [-0.15, 0.15]
@@ -149,7 +149,7 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
 
         impulse_height_commands = False
 
-        limit_vel_x = [0.0, 1.0]
+        limit_vel_x = [-1.0, 2.0]
         limit_vel_y = [0, 0]#[-0.6, 0.6]
         limit_vel_yaw = [-1.0, 1.0]
         limit_body_height = [-0.15, 0.15]
@@ -218,8 +218,8 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         penalize_contacts_on = []
         terminate_after_contacts_on = []
         terminate_if_height_lower_than = 0
-        terminate_if_roll_greater_than = 0.6
-        terminate_if_pitch_greater_than = 0.6
+        terminate_if_roll_greater_than = 0.8
+        terminate_if_pitch_greater_than = 0.8
         disable_gravity = False
         collapse_fixed_joints = True # merge bodies connected by fixed joints. Specific fixed joints can be kept by adding " <... dont_collapse="true">
         fix_base_link = False # fixe the base of the robot
@@ -282,6 +282,7 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         soft_dof_pos_limit = 0.9  # percentage of urdf limits, values above this limit are penalized
         soft_dof_vel_limit = 1.
         soft_torque_limit = 1.
+        soft_action_limit = 4.
         base_height_target = 0.30
         max_contact_force = 100.  # forces above this value are penalized
         use_terminal_body_height = False
@@ -311,7 +312,7 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         collision = -5.
         feet_stumble = -0.0
         action_rate = -0.01
-        action = -0.001
+        action = -1
         stand_still = -0.
         tracking_lin_vel_lat = 0.
         tracking_lin_vel_long = 0.

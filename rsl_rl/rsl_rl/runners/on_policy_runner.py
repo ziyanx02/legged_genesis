@@ -190,6 +190,7 @@ class OnPolicyRunner:
                 elif key[:4] == "rew_":
                     wandb_dict['Reward/' + key[4:]] = value
                 elif "command" in key:
+                    continue
                     wandb_dict['Command/' + key] = value
                 else:
                     wandb_dict['Episode/' + key] = value

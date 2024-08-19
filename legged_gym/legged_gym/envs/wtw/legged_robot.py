@@ -124,15 +124,16 @@ class LeggedRobotWTW(LeggedRobot):
             for curriculum, category in zip(self.curricula, self.category_names):
                 self.extras["episode"][f"command_area_{category}"] = np.sum(curriculum.weights) / curriculum.weights.shape[0]
 
-            self.extras["episode"]["min_action"] = torch.min(self.actions)
-            self.extras["episode"]["max_action"] = torch.max(self.actions)
-
             self.extras["curriculum/distribution"] = {}
             for curriculum, category in zip(self.curricula, self.category_names):
                 self.extras[f"curriculum/distribution"][f"weights_{category}"] = curriculum.weights
                 self.extras[f"curriculum/distribution"][f"grid_{category}"] = curriculum.grid
         if self.cfg.env.send_timeouts:
             self.extras["time_outs"] = self.time_out_buf[:self.num_envs]
+
+        self.extras["episode"]["min_action"] = torch.min(self.actions)
+        self.extras["episode"]["max_action"] = torch.max(self.actions)
+        self.extras["episode"]["mean_action"] = torch.abs(self.actions).mean()
 
         self.gait_indices[env_ids] = 0
 

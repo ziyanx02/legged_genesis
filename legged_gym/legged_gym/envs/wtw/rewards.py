@@ -45,8 +45,8 @@ class WTWRewards:
         return torch.sum(torch.square(self.env.last_actions - self.env.actions), dim=1)
 
     def _reward_action(self):
-        # Penalize changes in actions
-        return torch.sum(torch.square(self.env.actions), dim=1)
+        # Penalize actions greater than 4
+        return torch.sum(torch.square(torch.abs(self.env.actions).clip(min=self.env.cfg.rewards.soft_action_limit) - self.env.cfg.rewards.soft_action_limit), dim=1)
 
     def _reward_collision(self):
         # Penalize collisions on selected bodies
