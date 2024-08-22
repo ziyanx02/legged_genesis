@@ -37,6 +37,20 @@ class GO2CfgWTW( LeggedRobotCfgWTW ):
         foot_name = ["calf",]
         penalize_contacts_on = ["thigh"]
         terminate_after_contacts_on = ["base", "hip"]
+        dof_names_in_real = [
+            "FR_hip_joint",
+            "FR_thigh_joint",
+            "FR_calf_joint",
+            "FL_hip_joint",
+            "FL_thigh_joint",
+            "FL_calf_joint",
+            "RR_hip_joint",
+            "RR_thigh_joint",
+            "RR_calf_joint",
+            "RL_hip_joint",
+            "RL_thigh_joint",
+            "RL_calf_joint",
+        ]
   
 class GO2CfgPPOWTW( LeggedRobotCfgPPOWTW ):
     class algorithm( LeggedRobotCfgPPOWTW.algorithm ):

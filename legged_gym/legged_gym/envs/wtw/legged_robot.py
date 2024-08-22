@@ -32,6 +32,10 @@ class LeggedRobotWTW(LeggedRobot):
 
         self._init_command_distribution(torch.arange(self.num_envs, device=self.device))
 
+    def step(self, actions):
+        actions = actions[:, self.real2sim_id]
+        return super().step(actions)
+
     def post_physics_step(self):
         """ check terminations, compute observations and rewards
             calls self._post_physics_step_callback() for common computations 
@@ -195,9 +199,9 @@ class LeggedRobotWTW(LeggedRobot):
         if self.cfg.env.observe_command:
             self.obs_buf = torch.cat((self.projected_gravity,
                                       self.commands * self.commands_scale,
-                                      (self.dof_pos[:, :self.num_actions] - self.default_dof_pos[:, :self.num_actions]) * self.obs_scales.dof_pos,
-                                      self.dof_vel[:, :self.num_actions] * self.obs_scales.dof_vel,
-                                      self.actions
+                                      ((self.dof_pos[:, :self.num_actions] - self.default_dof_pos[:, :self.num_actions]) * self.obs_scales.dof_pos)[:, self.sim2real_id],
+                                      (self.dof_vel[:, :self.num_actions] * self.obs_scales.dof_vel)[:, self.sim2real_id],
+                                      self.actions[:, self.sim2real_id]
                                       ), dim=-1)
 
         if self.cfg.env.observe_two_prev_actions:
@@ -513,8 +517,7 @@ class LeggedRobotWTW(LeggedRobot):
             self.env_command_bins[env_ids_in_category.cpu().numpy()] = new_bin_inds
             self.env_command_categories[env_ids_in_category.cpu().numpy()] = i
 
-            self.commands[env_ids_in_category, :] = torch.Tensor(new_commands[:, :self.cfg.commands.num_commands]).to(
-                self.device)
+            self.commands[env_ids_in_category, :] = torch.Tensor(new_commands[:, :self.cfg.commands.num_commands]).to(self.device)
 
         if self.cfg.commands.num_commands > 5:
             if self.cfg.commands.gaitwise_curricula:
@@ -857,6 +860,19 @@ class LeggedRobotWTW(LeggedRobot):
         self.clock_inputs = torch.zeros(self.num_envs, 4, dtype=torch.float, device=self.device, requires_grad=False)
         self.doubletime_clock_inputs = torch.zeros(self.num_envs, 4, dtype=torch.float, device=self.device, requires_grad=False)
         self.halftime_clock_inputs = torch.zeros(self.num_envs, 4, dtype=torch.float, device=self.device, requires_grad=False)
+
+        sim_dofs = list(self.cfg.init_state.default_joint_angles.keys())
+        real_dofs = self.cfg.asset.dof_names_in_real
+        self.sim2real_id = torch.zeros(self.cfg.env.num_actions, dtype=torch.long, device=self.device, requires_grad=False)
+        self.real2sim_id = torch.zeros(self.cfg.env.num_actions, dtype=torch.long, device=self.device, requires_grad=False)
+        for i in range(len(real_dofs)):
+            for j in range(len(sim_dofs)):
+                if sim_dofs[j] == real_dofs[i]:
+                    self.real2sim_id[i] = j
+        for i in range(len(sim_dofs)):
+            for j in range(len(real_dofs)):
+                if real_dofs[j] == sim_dofs[i]:
+                    self.sim2real_id[i] = j
 
     def _prepare_reward_function(self):
         """ Prepares a list of reward functions, whcih will be called to compute the total reward.

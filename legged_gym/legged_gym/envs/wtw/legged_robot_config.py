@@ -33,8 +33,7 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 class LeggedRobotCfgWTW(LeggedRobotCfg):
     class env:
         num_envs = 4096
-        num_observations = 70
-        num_scalar_observations = 70
+        num_observations = 69
         num_privileged_obs = 2 # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise 
         privileged_future_horizon = 1
         num_actions = 12
@@ -114,7 +113,7 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         yaw_command_curriculum = False
         max_yaw_curriculum = 1.
         exclusive_command_sampling = False
-        num_commands = 15
+        num_commands = 14
         resampling_time = 10.  # time before command are changed[s]
         subsample_gait = False
         gait_interval_s = 10.  # time between resampling gait params
@@ -214,6 +213,7 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
     class asset:
         file = ""
         name = "legged_robot"  # actor name
+        dof_names_in_real = []
         foot_name = [] # name of the feet bodies, used to index body state and contact force tensors
         penalize_contacts_on = []
         terminate_after_contacts_on = []
@@ -238,8 +238,8 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
     class domain_rand:
         rand_interval_s = 10
         randomize_rigids_after_start = True
-        randomize_friction = False # True
-        friction_range = [0.1, 3.0]  # increase range
+        randomize_friction = True
+        friction_range = [0.5, 2.0]  # increase range
         randomize_restitution = False
         restitution_range = [0, 1.0]
         randomize_base_mass = False # True
@@ -258,11 +258,11 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         gravity_impulse_duration = 1.0
         randomize_gravity = False
         gravity_range = [-1.0, 1.0]
-        push_robots = False # True
+        push_robots = True
         push_interval_s = 10
         max_push_vel_xy = 1.
-        randomize_lag_timesteps = False # True
-        lag_timesteps = 0 # 6
+        randomize_lag_timesteps = True
+        lag_timesteps = 1
 
     class curriculum_thresholds:
         tracking_lin_vel = 0.8  # closer to 1 is tighter
