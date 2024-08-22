@@ -100,6 +100,7 @@ class OnPolicyRunner:
         lenbuffer = deque(maxlen=100)
         cur_reward_sum = torch.zeros(self.env.num_envs, dtype=torch.float, device=self.device)
         cur_episode_length = torch.zeros(self.env.num_envs, dtype=torch.float, device=self.device)
+        max_episode_length = 0
 
         tot_iter = self.current_learning_iteration + num_learning_iterations
         for it in range(self.current_learning_iteration, tot_iter):
@@ -125,6 +126,17 @@ class OnPolicyRunner:
                         cur_reward_sum[new_ids] = 0
                         cur_episode_length[new_ids] = 0
 
+                if len(lenbuffer) > 0:
+                    mean_episode_length = statistics.mean(lenbuffer)
+                else:
+                    mean_episode_length = 0
+                
+                if mean_episode_length > max_episode_length:
+                    max_episode_length = mean_episode_length
+                elif mean_episode_length < 0.6 * max_episode_length:
+                    max_episode_length = 0
+                    self.env.reset()
+                
                 stop = time.time()
                 collection_time = stop - start
 
@@ -213,6 +225,7 @@ class OnPolicyRunner:
         if len(locs['rewbuffer']) > 0:
             wandb_dict['Train/mean_reward'] = statistics.mean(locs['rewbuffer'])
             wandb_dict['Train/mean_episode_length'] = statistics.mean(locs['lenbuffer'])
+            wandb_dict['Train/max_episode_length'] = locs['max_episode_length']
 
         wandb.log(wandb_dict, step=locs['it'])
 

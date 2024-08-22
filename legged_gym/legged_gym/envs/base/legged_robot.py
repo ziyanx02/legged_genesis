@@ -243,9 +243,10 @@ class LeggedRobot(BaseTask):
     
     def reset(self):
         """ Reset all robots"""
+        self.scene.reset()
         self.reset_idx(torch.arange(self.num_envs, device=self.device))
         return None, None
-    
+
     def compute_reward(self):
         """ Compute rewards
             Calls each reward function which had a non-zero scale (processed in self._prepare_reward_function())
@@ -343,6 +344,7 @@ class LeggedRobot(BaseTask):
         """ Build parallel envs and randomizations """
 
         self.scene.build(n_envs=self.num_envs)
+        self.scene.reset()
 
         for solver in self.scene.sim.solvers:
             if not isinstance(solver, RigidSolver):
@@ -859,8 +861,6 @@ class LeggedRobot(BaseTask):
             dof_id += 1
         self.default_dof_pos = self.default_dof_pos.unsqueeze(0).repeat(self.num_envs, 1)
 
-        print(self.body_names)
-        exit()
         feet_names = []
         for name in self.cfg.asset.foot_name:
             feet_names.extend([s for s in self.body_names if name in s])
