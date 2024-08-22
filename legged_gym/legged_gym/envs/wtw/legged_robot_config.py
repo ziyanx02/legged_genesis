@@ -282,7 +282,7 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         soft_dof_pos_limit = 0.9  # percentage of urdf limits, values above this limit are penalized
         soft_dof_vel_limit = 1.
         soft_torque_limit = 1.
-        soft_action_limit = 4.
+        soft_action_limit = 8.
         base_height_target = 0.30
         max_contact_force = 100.  # forces above this value are penalized
         use_terminal_body_height = False
@@ -312,8 +312,8 @@ class LeggedRobotCfgWTW(LeggedRobotCfg):
         collision = -5.
         feet_stumble = -0.0
         action_rate = -0.01
-        action_limit = -0.
-        action = -0.001
+        action_limit = -0.1
+        action = -0.00
         stand_still = -0.
         tracking_lin_vel_lat = 0.
         tracking_lin_vel_long = 0.
