@@ -130,7 +130,8 @@ class LeggedRobot(BaseTask):
             actions (torch.Tensor): Tensor of shape (num_envs, num_actions_per_env)
         """
         clip_actions = self.cfg.normalization.clip_actions
-        self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
+        # self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
+        self.actions = actions.to(self.device)
         # step physics and render each frame
 
         # result = self.rigid_solver.get_links_com([1,], torch.arange(0, self.num_envs))
@@ -605,8 +606,10 @@ class LeggedRobot(BaseTask):
         self.root_states[env_ids, :3] += self.env_origins[env_ids]
         self.root_states[env_ids, :2] += 1 * (torch.rand(self.root_states[env_ids, :2].shape, device=self.device) - 0.5)
         self.base_pos[env_ids] = self.root_states[env_ids, :3]
+        self.base_lin_vel[env_ids] = 0
+        self.base_ang_vel[env_ids] = 0
 
-        random_rotation = 0.5 * (torch.rand((len(env_ids), 3), device=self.device, requires_grad=False) - 0.5)
+        random_rotation = 0. * (torch.rand((len(env_ids), 3), device=self.device, requires_grad=False) - 0.5) # TODO: add randomization of base pitch/yaw and gravity
         random_rotation[:, 2] = 2 * torch.rand((len(env_ids)), device=self.device, requires_grad=False) * torch.pi
 
         self.robot.set_pos(self.base_pos[env_ids], envs_idx=env_ids)

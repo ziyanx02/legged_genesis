@@ -87,6 +87,8 @@ class LeggedRobotWTW(LeggedRobot):
         self._resample_commands(env_ids)
 
         # reset buffers
+        self.projected_gravity[env_ids] = self.gravity_vec[env_ids]
+        self.actions[env_ids] = 0.
         self.last_actions[env_ids] = 0.
         self.last_last_actions[env_ids] = 0.
         self.last_dof_vel[env_ids] = 0.
