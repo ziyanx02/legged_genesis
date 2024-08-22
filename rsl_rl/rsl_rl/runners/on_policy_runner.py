@@ -131,12 +131,6 @@ class OnPolicyRunner:
                 else:
                     mean_episode_length = 0
                 
-                if mean_episode_length > max_episode_length:
-                    max_episode_length = mean_episode_length
-                elif mean_episode_length < 0.6 * max_episode_length:
-                    max_episode_length = 0
-                    self.env.reset()
-                
                 stop = time.time()
                 collection_time = stop - start
 
