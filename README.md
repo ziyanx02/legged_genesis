@@ -1,13 +1,11 @@
-## TODO
-
-Domain randomization.
-
 ## Usage
 
-After adding any assets, **REMEMBER TO CHECK**:
-- joint names and body names, including foot_name etc.
-- default dof pos, and rearrange them in the other used in Genesis
+Install genesis, rsl_rl and legged_gym that are in the root directory.
 
-Run `python train.py 000-00-ANYTHING --task a1 --entity YOUR_WANDB_ENTITY --headless` to train.
+Bash `cd legged_gym/legged_gym/scripts`.
 
-Run `python play.py 000-00 --task a1` to evaluate. `000-00` can be replaced to any exptid (automatically match the description).
+Replace wandb login key and entity in `train.py` by yours.
+
+Run `python train.py 000-00-ANYTHING --task go2_wtw --headless --max_iterations 8000` to train. (10000 to converge, could early terminate at 4000 to finetune)
+
+Run `python play_wtw.py 001-22 --task go2_wtw` to evaluate the existant checkpoint. Replace `001-22` by your exptid (i.e. `000-00`).
